@@ -1,0 +1,425 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Loom — Loom</title>
+    <meta name="color-scheme" content="dark light" />
+    <meta name="theme-color" content="#f59e0b" />
+    <meta
+      name="description"
+      content="Loom is a modern, clean, fast chat experience with a premium two‑panel layout, beautiful messaging UI, and installable web app support."
+    />
+    <meta name="robots" content="index,follow" />
+    <meta name="googlebot" content="index,follow" />
+    <meta name="author" content="Loom" />
+    <meta name="keywords" content="Loom chat, chat app, web chat, messaging app, installable web app" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Loom — Messaging that looks premium" />
+    <meta
+      property="og:description"
+      content="A modern, clean, fast chat experience with a premium two‑panel layout and beautiful messaging UI."
+    />
+    <meta property="og:image" content="logo.png" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Loom — Messaging that looks premium" />
+    <meta
+      name="twitter:description"
+      content="A modern, clean, fast chat experience with a premium two‑panel layout and beautiful messaging UI."
+    />
+    <meta name="twitter:image" content="logo.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="icons/icon-192.png" />
+
+    <!-- Tailwind CSS (CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              loom: {
+                bg: "#0b141a",
+                panel: "#111b21",
+                panel2: "#0f1a20",
+                border: "rgba(255,255,255,0.08)",
+                text: "#e9edef",
+                muted: "#8f9aa3",
+                brand: "#f59e0b",
+                brand2: "#fb923c",
+              },
+            },
+            boxShadow: {
+              glow: "0 0 0 1px rgba(245,158,11,0.20), 0 18px 60px rgba(0,0,0,0.65)",
+              soft: "0 12px 40px rgba(0,0,0,0.55)",
+            },
+          },
+        },
+      };
+    </script>
+
+    <!-- Font Awesome (CDN) -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+      referrerpolicy="no-referrer"
+    />
+
+    <style>
+      .loom-bg {
+        background: radial-gradient(1200px 700px at 20% 10%, rgba(245, 158, 11, 0.22), transparent 55%),
+          radial-gradient(900px 600px at 80% 30%, rgba(251, 146, 60, 0.14), transparent 60%),
+          linear-gradient(180deg, #071015 0%, #0b141a 70%, #071015 100%);
+      }
+      .scrollbar::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+      }
+      .scrollbar::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.12);
+        border-radius: 999px;
+        border: 2px solid rgba(0, 0, 0, 0);
+        background-clip: padding-box;
+      }
+      .scrollbar::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 255, 255, 0.18);
+        border: 2px solid rgba(0, 0, 0, 0);
+        background-clip: padding-box;
+      }
+      html[data-theme="light"] body {
+        background: #f0f2f5;
+      }
+      html[data-theme="light"] .theme-panel {
+        background: #ffffff;
+        color: #111827;
+      }
+      html[data-theme="light"] .theme-muted {
+        color: #6b7280;
+      }
+      html[data-theme="light"] .theme-border {
+        border-color: rgba(17, 24, 39, 0.12);
+      }
+      html[data-theme="light"] .theme-ink {
+        color: #111827;
+      }
+      html[data-theme="light"] .theme-input {
+        background: rgba(17, 24, 39, 0.06);
+      }
+    </style>
+  </head>
+
+  <body class="min-h-screen loom-bg text-loom-text antialiased">
+    <!-- Top Bar -->
+    <header class="sticky top-0 z-20 border-b border-loom-border theme-border bg-loom-panel/70 theme-panel backdrop-blur">
+      <div class="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3">
+        <a href="app.html" class="flex items-center gap-3">
+          <div class="grid h-10 w-10 place-items-center rounded-2xl bg-loom-panel shadow-glow ring-1 ring-loom-border theme-border">
+            <img
+              src="logo.png"
+              alt="Loom"
+              class="h-6 w-6 object-contain drop-shadow-[0_10px_26px_rgba(245,158,11,0.40)]"
+            />
+          </div>
+          <div class="leading-tight">
+            <p class="font-semibold theme-ink">Loom</p>
+            <p class="text-xs text-loom-muted theme-muted">A clean, modern chat UI</p>
+          </div>
+        </a>
+
+        <div class="flex items-center gap-2">
+          <button
+            id="themeBtn"
+            class="h-10 w-10 grid place-items-center rounded-xl bg-white/5 ring-1 ring-loom-border theme-border hover:bg-white/10 transition"
+            title="Toggle theme"
+            type="button"
+          >
+            <i class="fa-solid fa-moon"></i>
+          </button>
+          <button
+            id="downloadBtnTop"
+            class="rounded-xl bg-loom-brand px-4 py-2 text-sm font-semibold text-black hover:brightness-110 transition"
+            type="button"
+          >
+            Download app
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main class="mx-auto max-w-6xl px-4 py-10">
+      <script type="application/ld+json">
+        {
+          "@context": "https://schema.org",
+          "@type": "SoftwareApplication",
+          "name": "Loom",
+          "applicationCategory": "CommunicationApplication",
+          "operatingSystem": "Web",
+          "description": "A modern, clean, fast chat experience with a premium two-panel layout and beautiful messaging UI.",
+          "softwareVersion": "1.0",
+          "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+        }
+      </script>
+      <!-- Hero -->
+      <section class="grid gap-8 lg:grid-cols-2 lg:items-center">
+        <div>
+          <div class="inline-flex items-center gap-2 rounded-full bg-white/5 px-3 py-1.5 text-xs text-loom-muted theme-muted ring-1 ring-loom-border theme-border">
+            <span class="h-2 w-2 rounded-full bg-loom-brand"></span>
+            <span>Fast · clean · private</span>
+          </div>
+          <h1 class="mt-4 text-4xl font-semibold tracking-tight theme-ink">Messaging that looks premium.</h1>
+          <p class="mt-3 text-base text-loom-muted theme-muted">
+            Loom is a polished, responsive web chat experience with a familiar two-panel layout, modern micro-interactions, and an orange-tinted dark mode.
+          </p>
+
+          <div class="mt-6 flex flex-wrap items-center gap-3">
+            <a href="app.html" class="rounded-xl bg-loom-brand px-5 py-3 text-sm font-semibold text-black hover:brightness-110 transition">Get started</a>
+            <a
+              href="app.html"
+              class="rounded-xl bg-white/5 px-5 py-3 text-sm font-semibold ring-1 ring-loom-border theme-border hover:bg-white/10 transition"
+            >
+              Go to chats
+            </a>
+            <button
+              id="downloadBtn"
+              type="button"
+              class="rounded-xl bg-white/5 px-5 py-3 text-sm font-semibold ring-1 ring-loom-border theme-border hover:bg-white/10 transition"
+            >
+              Download app
+            </button>
+          </div>
+
+          <div class="mt-8 grid grid-cols-2 gap-3">
+            <div class="rounded-2xl bg-loom-panel/70 theme-panel ring-1 ring-loom-border theme-border p-4 shadow-soft">
+              <p class="text-xs text-loom-muted theme-muted">Designed for</p>
+              <p class="mt-1 font-semibold theme-ink">Speed + Clarity</p>
+            </div>
+            <div class="rounded-2xl bg-loom-panel/70 theme-panel ring-1 ring-loom-border theme-border p-4 shadow-soft">
+              <p class="text-xs text-loom-muted theme-muted">Made for</p>
+              <p class="mt-1 font-semibold theme-ink">Everyday messaging</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="rounded-3xl bg-loom-panel/70 theme-panel ring-1 ring-loom-border theme-border shadow-soft overflow-hidden">
+          <div class="border-b border-loom-border theme-border px-5 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-2 text-sm font-semibold theme-ink">
+              <i class="fa-solid fa-sparkles text-loom-brand"></i>
+              <span>Preview</span>
+            </div>
+            <div class="text-xs text-loom-muted theme-muted">A quick look inside Loom</div>
+          </div>
+          <div id="gallery" class="scrollbar grid grid-cols-1 sm:grid-cols-2 gap-3 p-5 max-h-[420px] overflow-y-auto"></div>
+        </div>
+      </section>
+
+      <!-- Features -->
+      <section class="mt-12">
+        <h2 class="text-2xl font-semibold theme-ink">What Loom does</h2>
+        <p class="mt-2 text-sm text-loom-muted theme-muted">A clean chat experience with the essentials for everyday conversations.</p>
+
+        <div class="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div class="rounded-2xl bg-loom-panel/70 theme-panel ring-1 ring-loom-border theme-border p-5 shadow-soft">
+            <div class="flex items-center gap-3">
+              <div class="grid h-11 w-11 place-items-center rounded-2xl bg-white/5 ring-1 ring-loom-border theme-border">
+                <i class="fa-solid fa-user-lock text-loom-brand"></i>
+              </div>
+              <div>
+                <p class="font-semibold theme-ink">Accounts</p>
+                <p class="text-xs text-loom-muted theme-muted">Register and log in with username + password.</p>
+              </div>
+            </div>
+          </div>
+          <div class="rounded-2xl bg-loom-panel/70 theme-panel ring-1 ring-loom-border theme-border p-5 shadow-soft">
+            <div class="flex items-center gap-3">
+              <div class="grid h-11 w-11 place-items-center rounded-2xl bg-white/5 ring-1 ring-loom-border theme-border">
+                <i class="fa-solid fa-layer-group text-loom-brand"></i>
+              </div>
+              <div>
+                <p class="font-semibold theme-ink">Two-panel layout</p>
+                <p class="text-xs text-loom-muted theme-muted">Sidebar chats + focused conversation view.</p>
+              </div>
+            </div>
+          </div>
+          <div class="rounded-2xl bg-loom-panel/70 theme-panel ring-1 ring-loom-border theme-border p-5 shadow-soft">
+            <div class="flex items-center gap-3">
+              <div class="grid h-11 w-11 place-items-center rounded-2xl bg-white/5 ring-1 ring-loom-border theme-border">
+                <i class="fa-solid fa-magnifying-glass text-loom-brand"></i>
+              </div>
+              <div>
+                <p class="font-semibold theme-ink">Search</p>
+                <p class="text-xs text-loom-muted theme-muted">Filter chats quickly by contact name.</p>
+              </div>
+            </div>
+          </div>
+          <div class="rounded-2xl bg-loom-panel/70 theme-panel ring-1 ring-loom-border theme-border p-5 shadow-soft">
+            <div class="flex items-center gap-3">
+              <div class="grid h-11 w-11 place-items-center rounded-2xl bg-white/5 ring-1 ring-loom-border theme-border">
+                <i class="fa-solid fa-bolt text-loom-brand"></i>
+              </div>
+              <div>
+                <p class="font-semibold theme-ink">Instant sending</p>
+                <p class="text-xs text-loom-muted theme-muted">Optimistic UI: messages appear immediately.</p>
+              </div>
+            </div>
+          </div>
+          <div class="rounded-2xl bg-loom-panel/70 theme-panel ring-1 ring-loom-border theme-border p-5 shadow-soft">
+            <div class="flex items-center gap-3">
+              <div class="grid h-11 w-11 place-items-center rounded-2xl bg-white/5 ring-1 ring-loom-border theme-border">
+                <i class="fa-solid fa-palette text-loom-brand"></i>
+              </div>
+              <div>
+                <p class="font-semibold theme-ink">Themes</p>
+                <p class="text-xs text-loom-muted theme-muted">Orange-tinted dark mode + optional light mode.</p>
+              </div>
+            </div>
+          </div>
+          <div class="rounded-2xl bg-loom-panel/70 theme-panel ring-1 ring-loom-border theme-border p-5 shadow-soft">
+            <div class="flex items-center gap-3">
+              <div class="grid h-11 w-11 place-items-center rounded-2xl bg-white/5 ring-1 ring-loom-border theme-border">
+                <i class="fa-solid fa-download text-loom-brand"></i>
+              </div>
+              <div>
+                <p class="font-semibold theme-ink">Installable</p>
+                <p class="text-xs text-loom-muted theme-muted">Works as an app when installed from the browser.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Footer -->
+      <footer class="mt-12 border-t border-loom-border theme-border pt-6 text-sm text-loom-muted theme-muted">
+        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <p>© <span id="year"></span> Loom</p>
+          <div class="flex items-center gap-3">
+            <a href="app.html" class="hover:text-loom-text theme-ink">Chats</a>
+          </div>
+        </div>
+      </footer>
+    </main>
+
+    <script>
+      const THEME_KEY = "loom.theme.v1";
+      const themeBtn = document.getElementById("themeBtn");
+      const year = document.getElementById("year");
+      const gallery = document.getElementById("gallery");
+      const downloadBtn = document.getElementById("downloadBtn");
+      const downloadBtnTop = document.getElementById("downloadBtnTop");
+
+      function getTheme() {
+        return localStorage.getItem(THEME_KEY) || "dark";
+      }
+      function setTheme(theme) {
+        localStorage.setItem(THEME_KEY, theme);
+        document.documentElement.setAttribute("data-theme", theme);
+        themeBtn.innerHTML = theme === "light" ? '<i class="fa-solid fa-sun"></i>' : '<i class="fa-solid fa-moon"></i>';
+      }
+      function toggleTheme() {
+        setTheme(getTheme() === "dark" ? "light" : "dark");
+      }
+
+      function card(html) {
+        const div = document.createElement("div");
+        div.className =
+          "relative aspect-[4/3] overflow-hidden rounded-2xl ring-1 ring-loom-border theme-border bg-black/20 theme-input shadow-soft";
+        div.innerHTML = html;
+        return div;
+      }
+
+      function addPlaceholder(label) {
+        gallery.appendChild(
+          card(`
+            <div class="h-full w-full grid place-items-center p-4">
+              <div class="text-center">
+                <img src="logo.png" alt="Loom" class="mx-auto h-10 w-10 object-contain opacity-90" />
+                <p class="mt-2 text-sm font-semibold">Add ${label}</p>
+                <p class="mt-1 text-xs text-loom-muted theme-muted">Place your image file in this folder.</p>
+              </div>
+            </div>
+          `)
+        );
+      }
+
+      function tryLoadImage(baseName, exts) {
+        return new Promise((resolve) => {
+          const img = new Image();
+          let i = 0;
+          function next() {
+            if (i >= exts.length) return resolve(null);
+            img.src = `${baseName}.${exts[i++]}`;
+          }
+          img.onload = () => resolve(img.src);
+          img.onerror = () => next();
+          next();
+        });
+      }
+
+      async function buildGallery() {
+        const exts = ["png", "jpg", "jpeg", "webp", "svg"];
+        const names = ["des1", "des2", "des3", "des4", "des5", "des6"];
+        const results = await Promise.all(names.map((n) => tryLoadImage(n, exts)));
+
+        let any = false;
+        results.forEach((src, idx) => {
+          if (!src) return;
+          any = true;
+          gallery.appendChild(
+            card(`
+              <img src="${src}" alt="${names[idx]}" class="h-full w-full object-cover" />
+              <div class="absolute inset-0 bg-gradient-to-t from-black/35 to-transparent"></div>
+              <div class="absolute bottom-2 left-2 right-2 text-[11px] text-white/85">${names[idx]}</div>
+            `)
+          );
+        });
+
+        if (!any) {
+          addPlaceholder("des1.png");
+          addPlaceholder("des2.png");
+          addPlaceholder("des3.png");
+          addPlaceholder("des4.png");
+        }
+      }
+
+      year.textContent = String(new Date().getFullYear());
+      setTheme(getTheme());
+      themeBtn.addEventListener("click", toggleTheme);
+      buildGallery();
+
+      // PWA wiring (install + offline). Requires HTTPS (or localhost).
+      window.__loomInstallPrompt = null;
+
+      if ("serviceWorker" in navigator && window.isSecureContext) {
+        navigator.serviceWorker.register("./sw.js").catch(() => {});
+      }
+
+      window.addEventListener("beforeinstallprompt", (e) => {
+        e.preventDefault();
+        window.__loomInstallPrompt = e;
+      });
+
+      async function downloadApp() {
+        // If install prompt isn't available (or not HTTPS), fall back to opening the app shell.
+        if (window.isSecureContext && window.__loomInstallPrompt) {
+          try {
+            window.__loomInstallPrompt.prompt();
+            await window.__loomInstallPrompt.userChoice;
+            window.__loomInstallPrompt = null;
+            return;
+          } catch {
+            // fall back
+          }
+        }
+        window.location.href = "app.html";
+      }
+
+      downloadBtn?.addEventListener("click", downloadApp);
+      downloadBtnTop?.addEventListener("click", downloadApp);
+    </script>
+  </body>
+</html>
