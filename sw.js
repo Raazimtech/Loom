@@ -65,3 +65,34 @@ self.addEventListener("fetch", (event) => {
   );
 });
 
+// Notification interactions: open the real app shell.
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const data = event.notification?.data || {};
+  const chatId = data.chatId ? `?chat=${encodeURIComponent(data.chatId)}` : "";
+  const url = `./app.html${chatId}`;
+
+  event.waitUntil(
+    (async () => {
+      const clientsArr = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+      // Prefer focusing an existing app tab.
+      for (const client of clientsArr) {
+        try {
+          const clientUrl = new URL(client.url);
+          if (clientUrl.pathname.endsWith("/app.html") || clientUrl.pathname.endsWith("\\app.html")) {
+            await client.focus();
+            client.postMessage({ type: "loom:openChat", chatId: data.chatId || null });
+            return;
+          }
+        } catch {
+          // ignore
+        }
+      }
+      // Otherwise, open a new window.
+      const newClient = await self.clients.openWindow(url);
+      if (newClient) {
+        newClient.postMessage({ type: "loom:openChat", chatId: data.chatId || null });
+      }
+    })()
+  );
+});

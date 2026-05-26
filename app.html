@@ -10,6 +10,8 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="icon" type="image/png" sizes="32x32" href="icons/icon-32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="icons/icon-16.png" />
     <link rel="apple-touch-icon" href="icons/icon-192.png" />
 
     <!-- Tailwind CSS (CDN) -->
@@ -116,7 +118,7 @@
             </div>
             <div class="leading-tight">
               <h1 class="text-2xl font-semibold">Loom</h1>
-              <p class="text-sm text-loom-muted theme-muted">Sign in to continue</p>
+              <p class="text-sm text-loom-muted theme-muted">Welcome. Sign in to continue.</p>
             </div>
           </div>
 
@@ -232,20 +234,28 @@
                 </div>
               </div>
 
-              <div class="flex items-center gap-2">
-                <button
-                  id="themeBtn"
-                  class="h-10 w-10 grid place-items-center rounded-xl bg-white/5 ring-1 ring-loom-border theme-border hover:bg-white/10 transition"
-                  title="Toggle dark/light"
-                  type="button"
-                >
-                  <i class="fa-solid fa-moon"></i>
-                </button>
-                <button
-                  id="newChatBtn"
-                  class="h-10 w-10 grid place-items-center rounded-xl bg-white/5 ring-1 ring-loom-border theme-border hover:bg-white/10 transition"
-                  title="Add friends"
-                  type="button"
+            <div class="flex items-center gap-2">
+              <button
+                id="themeBtn"
+                class="h-10 w-10 grid place-items-center rounded-xl bg-white/5 ring-1 ring-loom-border theme-border hover:bg-white/10 transition"
+                title="Toggle dark/light"
+                type="button"
+              >
+                <i class="fa-solid fa-moon"></i>
+              </button>
+              <button
+                id="cameraBtn"
+                class="h-10 w-10 grid place-items-center rounded-xl bg-white/5 ring-1 ring-loom-border theme-border hover:bg-white/10 transition"
+                title="Camera"
+                type="button"
+              >
+                <i class="fa-solid fa-camera"></i>
+              </button>
+              <button
+                id="newChatBtn"
+                class="h-10 w-10 grid place-items-center rounded-xl bg-white/5 ring-1 ring-loom-border theme-border hover:bg-white/10 transition"
+                title="Add friends"
+                type="button"
                 >
                   <i class="fa-solid fa-user-plus"></i>
                 </button>
@@ -301,6 +311,89 @@
                   <span>Pick a chat on the left, or add a friend.</span>
                 </div>
                 <div class="mt-4"></div>
+              </div>
+            </div>
+
+            <!-- Camera section -->
+            <div id="cameraSection" class="hidden flex-1 loom-wallpaper theme-wallpaper px-4 py-4">
+              <div class="mx-auto w-full max-w-3xl">
+                <div class="rounded-2xl bg-loom-panel/70 theme-panel ring-1 ring-loom-border theme-border shadow-soft overflow-hidden">
+                  <div class="flex items-center justify-between gap-3 border-b border-loom-border theme-border px-5 py-4">
+                    <div class="min-w-0">
+                      <p class="font-semibold theme-ink">Camera</p>
+                      <p class="text-xs text-loom-muted theme-muted">Capture a photo or record a short clip</p>
+                    </div>
+                    <button
+                      id="closeCameraBtn"
+                      class="h-10 w-10 grid place-items-center rounded-xl bg-white/5 ring-1 ring-loom-border theme-border hover:bg-white/10 transition"
+                      type="button"
+                      title="Close"
+                    >
+                      <i class="fa-solid fa-xmark"></i>
+                    </button>
+                  </div>
+
+                  <div class="p-5 grid gap-4 lg:grid-cols-2">
+                    <div class="rounded-2xl bg-black/30 ring-1 ring-loom-border theme-border overflow-hidden">
+                      <video id="camVideo" class="h-64 w-full object-cover" playsinline autoplay muted></video>
+                    </div>
+                    <div class="space-y-3">
+                      <div class="rounded-2xl bg-black/20 theme-input ring-1 ring-loom-border theme-border p-4">
+                        <p class="text-sm font-semibold theme-ink">Permissions</p>
+                        <p class="mt-1 text-xs text-loom-muted theme-muted">Camera and microphone are only used when you turn them on.</p>
+                      </div>
+
+                      <div class="flex flex-wrap gap-2">
+                        <button
+                          id="startCamBtn"
+                          class="rounded-xl bg-loom-brand px-4 py-2 text-sm font-semibold text-black hover:brightness-110 transition"
+                          type="button"
+                        >
+                          Start camera
+                        </button>
+                        <button
+                          id="stopCamBtn"
+                          class="rounded-xl bg-white/5 px-4 py-2 text-sm font-semibold ring-1 ring-loom-border theme-border hover:bg-white/10 transition"
+                          type="button"
+                        >
+                          Stop
+                        </button>
+                        <button
+                          id="snapBtn"
+                          class="rounded-xl bg-white/5 px-4 py-2 text-sm font-semibold ring-1 ring-loom-border theme-border hover:bg-white/10 transition"
+                          type="button"
+                        >
+                          Take photo
+                        </button>
+                      </div>
+
+                      <div class="flex flex-wrap gap-2">
+                        <button
+                          id="startRecBtn"
+                          class="rounded-xl bg-white/5 px-4 py-2 text-sm font-semibold ring-1 ring-loom-border theme-border hover:bg-white/10 transition"
+                          type="button"
+                        >
+                          Start recording
+                        </button>
+                        <button
+                          id="stopRecBtn"
+                          class="rounded-xl bg-white/5 px-4 py-2 text-sm font-semibold ring-1 ring-loom-border theme-border hover:bg-white/10 transition"
+                          type="button"
+                        >
+                          Stop recording
+                        </button>
+                      </div>
+
+                      <div class="rounded-2xl bg-black/20 theme-input ring-1 ring-loom-border theme-border p-4">
+                        <p class="text-xs text-loom-muted theme-muted">
+                          Tip: After capturing media, you can send it in the currently open chat.
+                        </p>
+                      </div>
+
+                      <canvas id="camCanvas" class="hidden"></canvas>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -485,8 +578,18 @@
         logoutBtn: document.getElementById("logoutBtn"),
         newChatBtn: document.getElementById("newChatBtn"),
         themeBtn: document.getElementById("themeBtn"),
+        cameraBtn: document.getElementById("cameraBtn"),
         chatInfoBtn: document.getElementById("chatInfoBtn"),
         syncStatus: document.getElementById("syncStatus"),
+        cameraSection: document.getElementById("cameraSection"),
+        closeCameraBtn: document.getElementById("closeCameraBtn"),
+        camVideo: document.getElementById("camVideo"),
+        camCanvas: document.getElementById("camCanvas"),
+        startCamBtn: document.getElementById("startCamBtn"),
+        stopCamBtn: document.getElementById("stopCamBtn"),
+        snapBtn: document.getElementById("snapBtn"),
+        startRecBtn: document.getElementById("startRecBtn"),
+        stopRecBtn: document.getElementById("stopRecBtn"),
         // Modal
         modalOverlay: document.getElementById("modalOverlay"),
         closeModalBtn: document.getElementById("closeModalBtn"),
@@ -512,6 +615,12 @@
         filter: "",
         pollTimer: null,
         lastRenderedChatSignature: "",
+        lastSeenMsgByChat: {},
+        media: {
+          stream: null,
+          recorder: null,
+          recordedChunks: [],
+        },
       };
 
       // ====== Helpers ======
@@ -646,6 +755,38 @@
       function closeModal() {
         el.modalOverlay.classList.add("hidden");
         el.modalOverlay.classList.remove("flex");
+      }
+
+      // ====== Notifications ======
+      async function ensureNotificationPermission() {
+        if (!("Notification" in window)) return false;
+        if (Notification.permission === "granted") return true;
+        if (Notification.permission === "denied") return false;
+        try {
+          const res = await Notification.requestPermission();
+          return res === "granted";
+        } catch {
+          return false;
+        }
+      }
+
+      async function showMessageNotification({ title, body, chatId }) {
+        if (!("Notification" in window)) return;
+        if (Notification.permission !== "granted") return;
+        if (!("serviceWorker" in navigator)) return;
+        try {
+          const reg = await navigator.serviceWorker.ready;
+          await reg.showNotification(title, {
+            body,
+            tag: chatId || "loom-msg",
+            renotify: false,
+            icon: "icons/icon-192.png",
+            badge: "icons/icon-32.png",
+            data: { chatId: chatId || null },
+          });
+        } catch {
+          // best-effort
+        }
       }
 
       // ====== Local DB (localStorage) ======
@@ -984,9 +1125,35 @@
         const incoming = readDb();
         incoming.presence[state.session.username] =
           incoming.presence[state.session.username] || state.record.presence[state.session.username] || { lastSeen: nowIso() };
+        const prevRecord = state.record;
         state.record = incoming;
         renderChatList();
         renderActiveChat();
+
+        // Notify on new incoming messages when the page isn't visible.
+        try {
+          if (document.visibilityState !== "visible") {
+            const chats = chatsForMe();
+            for (const chat of chats) {
+              const peer = peerForChat(chat);
+              const last = (chat.messages || [])[chat.messages?.length - 1];
+              if (!last) continue;
+              const lastKey = state.lastSeenMsgByChat[chat.id];
+              const isNew = lastKey !== last.id;
+              const isIncoming = last.from?.toLowerCase() !== state.session.username.toLowerCase();
+              if (isNew && isIncoming) {
+                await showMessageNotification({
+                  title: peer.username,
+                  body: last.text || "New message",
+                  chatId: chat.id,
+                });
+              }
+              state.lastSeenMsgByChat[chat.id] = last.id;
+            }
+          }
+        } catch {
+          // ignore
+        }
       }
 
       function ensureChatWith(peerUsername) {
@@ -1141,6 +1308,143 @@
         scheduleSave();
       }
 
+      // ====== Camera / Mic ======
+      async function startCamera({ withAudio }) {
+        if (!navigator.mediaDevices?.getUserMedia) {
+          toast({ kind: "error", title: "Camera", message: "Camera is not supported in this browser." });
+          return;
+        }
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: "user" },
+            audio: Boolean(withAudio),
+          });
+          stopCamera();
+          state.media.stream = stream;
+          el.camVideo.srcObject = stream;
+          await el.camVideo.play().catch(() => {});
+        } catch {
+          toast({ kind: "error", title: "Permission needed", message: "Please allow camera/microphone access to use this feature." });
+        }
+      }
+
+      function stopCamera() {
+        if (state.media.recorder && state.media.recorder.state !== "inactive") {
+          try {
+            state.media.recorder.stop();
+          } catch {
+            // ignore
+          }
+        }
+        state.media.recorder = null;
+        state.media.recordedChunks = [];
+        if (state.media.stream) {
+          for (const t of state.media.stream.getTracks()) t.stop();
+          state.media.stream = null;
+        }
+        if (el.camVideo) el.camVideo.srcObject = null;
+      }
+
+      async function takePhotoAndSend() {
+        const chat = state.record.chats?.[state.activeChatId];
+        if (!chat) return toast({ kind: "info", title: "Camera", message: "Open a chat first to send a photo." });
+        if (!state.media.stream) return toast({ kind: "info", title: "Camera", message: "Start the camera first." });
+
+        const video = el.camVideo;
+        const canvas = el.camCanvas;
+        const w = video.videoWidth || 640;
+        const h = video.videoHeight || 480;
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(video, 0, 0, w, h);
+        const dataUrl = canvas.toDataURL("image/jpeg", 0.88);
+
+        const peer = peerForChat(chat);
+        const msg = {
+          id: uid(),
+          from: state.session.username,
+          to: peer.username,
+          text: "[Photo]",
+          media: { type: "image", dataUrl },
+          ts: nowIso(),
+          status: "sent",
+          readBy: [state.session.username],
+        };
+        chat.messages.push(msg);
+        chat.updatedAt = msg.ts;
+        upsertPresenceForMe();
+        state.lastRenderedChatSignature = "";
+        renderChatList();
+        renderActiveChat();
+        scheduleSave();
+      }
+
+      function startRecording() {
+        const chat = state.record.chats?.[state.activeChatId];
+        if (!chat) return toast({ kind: "info", title: "Recording", message: "Open a chat first to record." });
+        if (!state.media.stream) return toast({ kind: "info", title: "Recording", message: "Start the camera first." });
+        if (!window.MediaRecorder) return toast({ kind: "error", title: "Recording", message: "Recording is not supported in this browser." });
+
+        try {
+          state.media.recordedChunks = [];
+          const rec = new MediaRecorder(state.media.stream, { mimeType: "video/webm" });
+          state.media.recorder = rec;
+          rec.ondataavailable = (e) => {
+            if (e.data && e.data.size) state.media.recordedChunks.push(e.data);
+          };
+          rec.onstop = async () => {
+            const blob = new Blob(state.media.recordedChunks, { type: "video/webm" });
+            state.media.recordedChunks = [];
+            if (!blob.size) return;
+            // Convert to data URL for storage
+            const dataUrl = await new Promise((resolve, reject) => {
+              const reader = new FileReader();
+              reader.onload = () => resolve(String(reader.result || ""));
+              reader.onerror = () => reject(new Error("Failed to read recording."));
+              reader.readAsDataURL(blob);
+            }).catch(() => "");
+            if (!dataUrl) return;
+
+            const active = state.record.chats?.[state.activeChatId];
+            if (!active) return;
+            const peer = peerForChat(active);
+            const msg = {
+              id: uid(),
+              from: state.session.username,
+              to: peer.username,
+              text: "[Video]",
+              media: { type: "video", dataUrl },
+              ts: nowIso(),
+              status: "sent",
+              readBy: [state.session.username],
+            };
+            active.messages.push(msg);
+            active.updatedAt = msg.ts;
+            upsertPresenceForMe();
+            state.lastRenderedChatSignature = "";
+            renderChatList();
+            renderActiveChat();
+            scheduleSave();
+          };
+          rec.start(250);
+          toast({ kind: "success", title: "Recording", message: "Recording started." });
+        } catch {
+          toast({ kind: "error", title: "Recording", message: "Could not start recording." });
+        }
+      }
+
+      function stopRecording() {
+        const rec = state.media.recorder;
+        if (!rec) return;
+        try {
+          if (rec.state !== "inactive") rec.stop();
+          toast({ kind: "info", title: "Recording", message: "Recording saved to chat." });
+        } catch {
+          // ignore
+        }
+      }
+
       function autosizeTextarea() {
         // Basic autosize for 1–5 lines.
         el.messageInput.style.height = "0px";
@@ -1205,6 +1509,33 @@
 
         el.themeBtn.addEventListener("click", toggleTheme);
 
+        el.cameraBtn.addEventListener("click", () => {
+          // Show camera section (mobile: hide sidebar)
+          el.emptyState.classList.add("hidden");
+          el.chatHeader.classList.add("hidden");
+          el.messages.classList.add("hidden");
+          el.composer.classList.add("hidden");
+          el.cameraSection.classList.remove("hidden");
+          el.chatArea.classList.remove("hidden");
+          if (window.innerWidth < 768) el.sidebar.classList.add("hidden");
+        });
+        el.closeCameraBtn.addEventListener("click", () => {
+          el.cameraSection.classList.add("hidden");
+          stopCamera();
+          // Return to empty state if no chat active
+          if (state.activeChatId) {
+            renderActiveChat();
+          } else {
+            el.emptyState.classList.remove("hidden");
+          }
+          if (window.innerWidth < 768) el.sidebar.classList.remove("hidden");
+        });
+        el.startCamBtn.addEventListener("click", () => startCamera({ withAudio: true }));
+        el.stopCamBtn.addEventListener("click", stopCamera);
+        el.snapBtn.addEventListener("click", takePhotoAndSend);
+        el.startRecBtn.addEventListener("click", startRecording);
+        el.stopRecBtn.addEventListener("click", stopRecording);
+
         el.backBtn.addEventListener("click", () => {
           // Mobile: go back to sidebar list.
           el.chatArea.classList.add("hidden");
@@ -1268,6 +1599,17 @@
         el.meHint.textContent = "Welcome to Loom";
         el.meId.textContent = state.session.id ? `ID: ${state.session.id}` : "";
 
+        // Ask for notification permission after login (politely, once per session).
+        if ("Notification" in window && Notification.permission === "default") {
+          toast({
+            title: "Notifications",
+            message: "Enable notifications so you don't miss new messages.",
+            kind: "info",
+          });
+          // Don't block; request after a short delay to avoid being intrusive.
+          setTimeout(() => ensureNotificationPermission().catch(() => {}), 900);
+        }
+
         // PWA: inline manifest + service worker (no extra files).
         try {
           const manifest = {
@@ -1313,6 +1655,16 @@
         await hydrate();
         renderChatList();
 
+        // Prime last-seen pointers for notifications.
+        try {
+          for (const chat of chatsForMe()) {
+            const last = (chat.messages || [])[chat.messages?.length - 1];
+            if (last) state.lastSeenMsgByChat[chat.id] = last.id;
+          }
+        } catch {
+          // ignore
+        }
+
         // Poll for "live-ish" updates.
         clearInterval(state.pollTimer);
         state.pollTimer = setInterval(pollLatest, POLL_EVERY_MS);
@@ -1322,6 +1674,16 @@
         // PWA offline support (service worker). Requires HTTPS (or localhost).
         if ("serviceWorker" in navigator && window.isSecureContext) {
           navigator.serviceWorker.register("./sw.js").catch(() => {});
+        }
+
+        // Allow service worker notification clicks to open a chat.
+        if ("serviceWorker" in navigator) {
+          navigator.serviceWorker.addEventListener("message", (event) => {
+            const data = event.data || {};
+            if (data.type === "loom:openChat" && data.chatId) {
+              openChat(data.chatId);
+            }
+          });
         }
 
         // Auth init
