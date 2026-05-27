@@ -14,7 +14,6 @@
     <link rel="icon" type="image/png" sizes="16x16" href="icons/icon-16.png" />
     <link rel="apple-touch-icon" href="icons/icon-192.png" />
 
-    <!-- Tailwind CSS (CDN) -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
@@ -42,7 +41,6 @@
       };
     </script>
 
-    <!-- Font Awesome (CDN) -->
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
@@ -72,7 +70,7 @@
         border: 2px solid rgba(0, 0, 0, 0);
         background-clip: padding-box;
       }
-      /* Light mode palette (optional toggle) */
+      /* Light mode palette */
       html[data-theme="light"] body {
         background: #f0f2f5;
       }
@@ -104,17 +102,12 @@
   </head>
 
   <body class="h-dvh bg-loom-bg text-loom-text antialiased">
-    <!-- Auth (gates the app) -->
-    <div id="authScreen" class="hidden min-h-dvh">
+    <div id="authScreen" class="min-h-dvh">
       <div class="mx-auto flex min-h-dvh max-w-6xl items-center justify-center px-4 py-10">
         <section class="w-full max-w-md">
           <div class="mb-6 flex items-center justify-center gap-3">
             <div class="grid h-12 w-12 place-items-center rounded-2xl bg-loom-panel shadow-soft ring-1 ring-loom-border">
-              <img
-                src="logo.png"
-                alt="Loom"
-                class="h-7 w-7 object-contain drop-shadow-[0_10px_26px_rgba(245,158,11,0.38)]"
-              />
+              <span class="text-loom-brand text-xl font-bold"><i class="fa-solid fa-comments"></i></span>
             </div>
             <div class="leading-tight">
               <h1 class="text-2xl font-semibold">Loom</h1>
@@ -144,20 +137,20 @@
                   <i class="fa-solid fa-user text-loom-muted theme-muted"></i>
                   <input
                     id="authUsername"
-                    class="w-full bg-transparent py-3 text-sm outline-none placeholder:text-loom-muted/60 theme-muted"
+                    class="w-full bg-transparent py-3 text-sm outline-none placeholder:text-loom-muted/60 theme-muted text-white"
                     placeholder="e.g. Amina"
                     autocomplete="username"
                   />
                 </div>
               </div>
 
-              <div id="authAvatarRow">
+              <div id="authAvatarRow" class="hidden">
                 <label class="text-sm text-loom-muted theme-muted" for="authAvatarUrl">Profile picture URL <span class="text-xs">(optional)</span></label>
                 <div class="mt-1 flex items-center gap-2 rounded-xl bg-black/20 theme-input px-3 ring-1 ring-loom-border focus-within:ring-loom-brand/60">
                   <i class="fa-regular fa-image text-loom-muted theme-muted"></i>
                   <input
                     id="authAvatarUrl"
-                    class="w-full bg-transparent py-3 text-sm outline-none placeholder:text-loom-muted/60 theme-muted"
+                    class="w-full bg-transparent py-3 text-sm outline-none placeholder:text-loom-muted/60 theme-muted text-white"
                     placeholder="https://…"
                     autocomplete="url"
                   />
@@ -171,7 +164,7 @@
                   <input
                     id="authPassword"
                     type="password"
-                    class="w-full bg-transparent py-3 text-sm outline-none placeholder:text-loom-muted/60 theme-muted"
+                    class="w-full bg-transparent py-3 text-sm outline-none placeholder:text-loom-muted/60 theme-muted text-white"
                     placeholder="••••••••"
                     autocomplete="current-password"
                   />
@@ -179,7 +172,6 @@
                     <i class="fa-regular fa-eye"></i>
                   </button>
                 </div>
-                <p class="mt-2 text-xs text-loom-muted theme-muted">Use your account to continue.</p>
               </div>
 
               <button
@@ -198,23 +190,19 @@
 
             <div class="mt-6 flex items-center justify-between text-xs text-loom-muted theme-muted">
               <span>© <span id="authYear"></span> Loom</span>
-              <a href="index.html" class="hover:text-loom-text underline underline-offset-4">About</a>
             </div>
           </div>
         </section>
       </div>
     </div>
 
-    <!-- App shell -->
     <div id="appShell" class="hidden mx-auto h-dvh max-w-[1400px] px-0 md:px-4 md:py-4">
-      <div class="theme-panel h-dvh md:h-[calc(100dvh-2rem)] md:rounded-2xl bg-loom-panel ring-1 ring-loom-border shadow-soft overflow-hidden">
+      <div class="theme-panel h-full md:h-[calc(100dvh-2rem)] md:rounded-2xl bg-loom-panel ring-1 ring-loom-border shadow-soft overflow-hidden">
         <div class="flex h-full">
-          <!-- Sidebar -->
           <aside
             id="sidebar"
             class="w-full md:w-[35%] md:min-w-[340px] md:max-w-[480px] border-r border-loom-border theme-border flex flex-col"
           >
-            <!-- Sidebar header -->
             <div class="flex items-center justify-between gap-3 px-4 py-3 bg-loom-panel2 theme-panel border-b border-loom-border theme-border">
               <div class="flex items-center gap-3 min-w-0">
                 <img id="meAvatar" alt="You" class="h-10 w-10 rounded-full ring-1 ring-white/10 object-cover" />
@@ -229,33 +217,32 @@
                       Online
                     </span>
                   </div>
-                  <p id="meHint" class="truncate text-xs text-loom-muted theme-muted">Welcome to Loom</p>
-                  <p id="meId" class="truncate text-[11px] text-loom-muted theme-muted"></p>
+                  <p id="meHint" class="truncate text-xs text-loom-muted theme-muted">Connected to Cloud</p>
                 </div>
               </div>
 
-            <div class="flex items-center gap-2">
-              <button
-                id="themeBtn"
-                class="h-10 w-10 grid place-items-center rounded-xl bg-white/5 ring-1 ring-loom-border theme-border hover:bg-white/10 transition"
-                title="Toggle dark/light"
-                type="button"
-              >
-                <i class="fa-solid fa-moon"></i>
-              </button>
-              <button
-                id="cameraBtn"
-                class="h-10 w-10 grid place-items-center rounded-xl bg-white/5 ring-1 ring-loom-border theme-border hover:bg-white/10 transition"
-                title="Camera"
-                type="button"
-              >
-                <i class="fa-solid fa-camera"></i>
-              </button>
-              <button
-                id="newChatBtn"
-                class="h-10 w-10 grid place-items-center rounded-xl bg-white/5 ring-1 ring-loom-border theme-border hover:bg-white/10 transition"
-                title="Add friends"
-                type="button"
+              <div class="flex items-center gap-2">
+                <button
+                  id="themeBtn"
+                  class="h-10 w-10 grid place-items-center rounded-xl bg-white/5 ring-1 ring-loom-border theme-border hover:bg-white/10 transition"
+                  title="Toggle dark/light"
+                  type="button"
+                >
+                  <i class="fa-solid fa-moon"></i>
+                </button>
+                <button
+                  id="cameraBtn"
+                  class="h-10 w-10 grid place-items-center rounded-xl bg-white/5 ring-1 ring-loom-border theme-border hover:bg-white/10 transition"
+                  title="Camera"
+                  type="button"
+                >
+                  <i class="fa-solid fa-camera"></i>
+                </button>
+                <button
+                  id="newChatBtn"
+                  class="h-10 w-10 grid place-items-center rounded-xl bg-white/5 ring-1 ring-loom-border theme-border hover:bg-white/10 transition"
+                  title="Create Chat or Group"
+                  type="button"
                 >
                   <i class="fa-solid fa-user-plus"></i>
                 </button>
@@ -270,126 +257,57 @@
               </div>
             </div>
 
-            <!-- Search -->
             <div class="sticky top-0 z-10 bg-loom-panel theme-panel border-b border-loom-border theme-border px-4 py-3">
               <div class="flex items-center gap-2 rounded-xl bg-black/20 theme-input px-3 ring-1 ring-loom-border theme-border focus-within:ring-loom-brand/60">
                 <i class="fa-solid fa-magnifying-glass text-loom-muted theme-muted"></i>
                 <input
                   id="searchInput"
                   class="w-full bg-transparent py-2.5 text-sm outline-none placeholder:text-loom-muted/60 theme-muted"
-                  placeholder="Search chats"
+                  placeholder="Search chats or groups"
                   autocomplete="off"
                 />
               </div>
             </div>
 
-            <!-- Chat list -->
             <div id="chatList" class="scrollbar flex-1 overflow-y-auto"></div>
 
-            <!-- Sidebar footer -->
-            <div class="border-t border-loom-border theme-border px-4 py-3 text-xs text-loom-muted theme-muted">
-              <span id="syncStatus">Sync: idle</span>
+            <div class="border-t border-loom-border theme-border px-4 py-3 text-xs text-loom-muted theme-muted flex justify-between items-center">
+              <span id="syncStatus">Sync: cloud connecting...</span>
+              <span class="text-[10px] opacity-50">Bin Mode</span>
             </div>
           </aside>
 
-          <!-- Chat area -->
-          <section id="chatArea" class="relative hidden md:flex flex-1 flex-col">
-            <!-- Empty state -->
+          <section id="chatArea" class="relative hidden md:flex flex-1 flex-col bg-loom-bg">
             <div id="emptyState" class="flex-1 loom-wallpaper theme-wallpaper grid place-items-center px-6">
               <div class="max-w-md text-center">
                 <div class="mx-auto mb-4 grid h-16 w-16 place-items-center rounded-2xl bg-white/5 ring-1 ring-loom-border theme-border">
-                  <img
-                    src="logo.png"
-                    alt="Loom"
-                    class="h-9 w-9 object-contain drop-shadow-[0_10px_28px_rgba(245,158,11,0.38)]"
-                  />
+                  <span class="text-loom-brand text-2xl"><i class="fa-solid fa-comments"></i></span>
                 </div>
-                <h2 class="text-2xl font-semibold theme-ink">Loom for Web</h2>
-                <p class="mt-2 text-sm text-loom-muted theme-muted">Start a conversation to see your messages here.</p>
-                <div class="mt-5 inline-flex items-center gap-2 rounded-xl bg-white/5 px-4 py-3 text-xs text-loom-muted theme-muted ring-1 ring-loom-border theme-border">
-                  <i class="fa-solid fa-wand-magic-sparkles text-loom-brand/90"></i>
-                  <span>Pick a chat on the left, or add a friend.</span>
-                </div>
-                <div class="mt-4"></div>
+                <h2 class="text-2xl font-semibold theme-ink">Loom Cloud Web</h2>
+                <p class="mt-2 text-sm text-loom-muted theme-muted">Select a dialogue or group chat to begin messaging safely.</p>
               </div>
             </div>
 
-            <!-- Camera section -->
-            <div id="cameraSection" class="hidden flex-1 loom-wallpaper theme-wallpaper px-4 py-4">
+            <div id="cameraSection" class="hidden flex-1 loom-wallpaper theme-wallpaper px-4 py-4 overflow-y-auto">
               <div class="mx-auto w-full max-w-3xl">
                 <div class="rounded-2xl bg-loom-panel/70 theme-panel ring-1 ring-loom-border theme-border shadow-soft overflow-hidden">
                   <div class="flex items-center justify-between gap-3 border-b border-loom-border theme-border px-5 py-4">
                     <div class="min-w-0">
                       <p class="font-semibold theme-ink">Camera</p>
-                      <p class="text-xs text-loom-muted theme-muted">Capture a photo or record a short clip</p>
+                      <p class="text-xs text-loom-muted theme-muted">Capture a quick snapshot</p>
                     </div>
-                    <button
-                      id="closeCameraBtn"
-                      class="h-10 w-10 grid place-items-center rounded-xl bg-white/5 ring-1 ring-loom-border theme-border hover:bg-white/10 transition"
-                      type="button"
-                      title="Close"
-                    >
+                    <button id="closeCameraBtn" class="h-10 w-10 grid place-items-center rounded-xl bg-white/5 ring-1 ring-loom-border theme-border hover:bg-white/10 transition" type="button">
                       <i class="fa-solid fa-xmark"></i>
                     </button>
                   </div>
-
                   <div class="p-5 grid gap-4 lg:grid-cols-2">
-                    <div class="rounded-2xl bg-black/30 ring-1 ring-loom-border theme-border overflow-hidden">
+                    <div class="rounded-2xl bg-black/30 ring-1 ring-loom-border theme-border overflow-hidden relative">
                       <video id="camVideo" class="h-64 w-full object-cover" playsinline autoplay muted></video>
                     </div>
                     <div class="space-y-3">
-                      <div class="rounded-2xl bg-black/20 theme-input ring-1 ring-loom-border theme-border p-4">
-                        <p class="text-sm font-semibold theme-ink">Permissions</p>
-                        <p class="mt-1 text-xs text-loom-muted theme-muted">Camera and microphone are only used when you turn them on.</p>
-                      </div>
-
-                      <div class="flex flex-wrap gap-2">
-                        <button
-                          id="startCamBtn"
-                          class="rounded-xl bg-loom-brand px-4 py-2 text-sm font-semibold text-black hover:brightness-110 transition"
-                          type="button"
-                        >
-                          Start camera
-                        </button>
-                        <button
-                          id="stopCamBtn"
-                          class="rounded-xl bg-white/5 px-4 py-2 text-sm font-semibold ring-1 ring-loom-border theme-border hover:bg-white/10 transition"
-                          type="button"
-                        >
-                          Stop
-                        </button>
-                        <button
-                          id="snapBtn"
-                          class="rounded-xl bg-white/5 px-4 py-2 text-sm font-semibold ring-1 ring-loom-border theme-border hover:bg-white/10 transition"
-                          type="button"
-                        >
-                          Take photo
-                        </button>
-                      </div>
-
-                      <div class="flex flex-wrap gap-2">
-                        <button
-                          id="startRecBtn"
-                          class="rounded-xl bg-white/5 px-4 py-2 text-sm font-semibold ring-1 ring-loom-border theme-border hover:bg-white/10 transition"
-                          type="button"
-                        >
-                          Start recording
-                        </button>
-                        <button
-                          id="stopRecBtn"
-                          class="rounded-xl bg-white/5 px-4 py-2 text-sm font-semibold ring-1 ring-loom-border theme-border hover:bg-white/10 transition"
-                          type="button"
-                        >
-                          Stop recording
-                        </button>
-                      </div>
-
-                      <div class="rounded-2xl bg-black/20 theme-input ring-1 ring-loom-border theme-border p-4">
-                        <p class="text-xs text-loom-muted theme-muted">
-                          Tip: After capturing media, you can send it in the currently open chat.
-                        </p>
-                      </div>
-
+                      <button id="startCamBtn" class="w-full rounded-xl bg-loom-brand px-4 py-2.5 text-sm font-semibold text-black hover:brightness-110 transition" type="button">Start Camera</button>
+                      <button id="snapBtn" class="w-full rounded-xl bg-white/5 px-4 py-2.5 text-sm font-semibold ring-1 ring-loom-border theme-border hover:bg-white/10 transition" type="button">Snap & Transmit Photo</button>
+                      <button id="stopCamBtn" class="w-full rounded-xl bg-red-500/20 text-red-200 px-4 py-2.5 text-sm font-semibold transition hover:bg-red-500/30" type="button">Turn Off Camera</button>
                       <canvas id="camCanvas" class="hidden"></canvas>
                     </div>
                   </div>
@@ -397,71 +315,37 @@
               </div>
             </div>
 
-            <!-- Active chat header -->
             <header id="chatHeader" class="hidden items-center justify-between gap-3 px-4 py-3 bg-loom-panel2 theme-panel border-b border-loom-border theme-border">
               <div class="flex items-center gap-3 min-w-0">
-                <button
-                  id="backBtn"
-                  class="md:hidden h-10 w-10 grid place-items-center rounded-xl bg-white/5 ring-1 ring-loom-border theme-border hover:bg-white/10 transition"
-                  type="button"
-                  title="Back"
-                >
+                <button id="backBtn" class="md:hidden h-10 w-10 grid place-items-center rounded-xl bg-white/5 ring-1 ring-loom-border theme-border hover:bg-white/10 transition" type="button">
                   <i class="fa-solid fa-arrow-left"></i>
                 </button>
-                <img id="peerAvatar" alt="Contact" class="h-10 w-10 rounded-full ring-1 ring-white/10 object-cover" />
+                <div id="peerAvatarContainer">
+                  <img id="peerAvatar" alt="Contact" class="h-10 w-10 rounded-full ring-1 ring-white/10 object-cover" />
+                </div>
                 <div class="min-w-0">
                   <p id="peerName" class="truncate font-semibold theme-ink"></p>
                   <p id="peerStatus" class="truncate text-xs text-loom-muted theme-muted">—</p>
                 </div>
               </div>
-              <div class="flex items-center gap-2 text-loom-muted theme-muted">
-                <button
-                  id="chatInfoBtn"
-                  class="h-10 w-10 grid place-items-center rounded-xl bg-white/5 ring-1 ring-loom-border theme-border hover:bg-white/10 transition"
-                  type="button"
-                  title="Info"
-                >
-                  <i class="fa-solid fa-circle-info"></i>
-                </button>
-                <a
-                  href="index.html"
-                  class="h-10 w-10 grid place-items-center rounded-xl bg-white/5 ring-1 ring-loom-border theme-border hover:bg-white/10 transition"
-                  title="About"
-                  aria-label="About Loom"
-                >
-                  <i class="fa-solid fa-book-open"></i>
-                </a>
-              </div>
             </header>
 
-            <!-- Messages -->
-            <div id="messages" class="hidden flex-1 loom-wallpaper theme-wallpaper scrollbar overflow-y-auto px-4 py-4"></div>
+            <div id="messages" class="hidden flex-1 loom-wallpaper theme-wallpaper scrollbar overflow-y-auto px-4 py-4 space-y-3"></div>
 
-            <!-- Input bar -->
             <div id="composer" class="hidden border-t border-loom-border theme-border bg-loom-panel2 theme-panel px-3 py-3">
               <div class="flex items-end gap-2">
-                <button
-                  class="h-11 w-11 grid place-items-center rounded-xl bg-white/5 ring-1 ring-loom-border theme-border hover:bg-white/10 transition text-loom-muted theme-muted"
-                  type="button"
-                  title="Emoji (placeholder)"
-                >
-                  <i class="fa-regular fa-face-smile"></i>
-                </button>
-
                 <div class="flex-1 rounded-2xl bg-black/20 theme-input ring-1 ring-loom-border theme-border focus-within:ring-loom-brand/60 px-3">
                   <textarea
                     id="messageInput"
                     rows="1"
-                    class="scrollbar w-full resize-none bg-transparent py-3 text-sm outline-none placeholder:text-loom-muted/60 theme-muted"
+                    class="scrollbar w-full resize-none bg-transparent py-3 text-sm outline-none placeholder:text-loom-muted/60 theme-muted text-white"
                     placeholder="Type a message"
                   ></textarea>
                 </div>
-
                 <button
                   id="sendBtn"
                   class="h-11 w-11 grid place-items-center rounded-xl bg-loom-brand text-black hover:brightness-110 transition focus:outline-none focus:ring-2 focus:ring-loom-brand/60"
                   type="button"
-                  title="Send"
                 >
                   <i class="fa-solid fa-paper-plane"></i>
                 </button>
@@ -472,54 +356,66 @@
       </div>
     </div>
 
-    <!-- Add friends modal -->
-    <div id="modalOverlay" class="fixed inset-0 hidden items-center justify-center bg-black/60 px-4">
-      <div class="w-full max-w-md rounded-2xl bg-loom-panel theme-panel ring-1 ring-loom-border theme-border shadow-soft">
+    <div id="modalOverlay" class="fixed inset-0 hidden items-center justify-center bg-black/60 z-50 px-4">
+      <div class="w-full max-w-md rounded-2xl bg-loom-panel theme-panel ring-1 ring-loom-border theme-border shadow-soft overflow-hidden">
         <div class="flex items-center justify-between border-b border-loom-border theme-border px-5 py-4">
           <div>
-            <h3 class="font-semibold theme-ink">Add friends</h3>
-            <p class="text-xs text-loom-muted theme-muted">Search by username or ID</p>
+            <h3 id="modalMainTitle" class="font-semibold theme-ink">Create Chat / Group</h3>
+            <p class="text-xs text-loom-muted theme-muted">Start a dialogue or create a group room</p>
           </div>
           <button id="closeModalBtn" class="h-10 w-10 grid place-items-center rounded-xl bg-white/5 ring-1 ring-loom-border theme-border hover:bg-white/10 transition" type="button">
             <i class="fa-solid fa-xmark"></i>
           </button>
         </div>
-        <div class="p-5">
-          <div class="flex items-center gap-2 rounded-xl bg-black/20 theme-input px-3 ring-1 ring-loom-border theme-border focus-within:ring-loom-brand/60">
-            <i class="fa-solid fa-magnifying-glass text-loom-muted theme-muted"></i>
-            <input
-              id="newChatUsername"
-              class="w-full bg-transparent py-3 text-sm outline-none placeholder:text-loom-muted/60 theme-muted"
-              placeholder="Search (e.g. Amina or LOOM-7F3A2C)"
-              autocomplete="off"
-            />
+        <div class="p-5 space-y-4">
+          <div class="flex gap-2 p-1 bg-black/20 rounded-xl ring-1 ring-loom-border">
+            <button id="modeDirectBtn" type="button" class="flex-1 py-1.5 text-xs font-medium rounded-lg bg-loom-brand text-black transition">Direct Friend</button>
+            <button id="modeGroupBtn" type="button" class="flex-1 py-1.5 text-xs font-medium rounded-lg text-loom-muted hover:text-white transition">Group Chat</button>
           </div>
-          <div id="searchResults" class="mt-4 max-h-64 overflow-y-auto scrollbar space-y-2"></div>
-          <div id="modalError" class="mt-4 hidden rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-200"></div>
+
+          <div>
+            <label id="modalInputLabel" class="text-xs text-loom-muted theme-muted block mb-1" for="newChatUsername">Friend's Username</label>
+            <div class="flex items-center gap-2 rounded-xl bg-black/20 theme-input px-3 ring-1 ring-loom-border focus-within:ring-loom-brand/60">
+              <i id="modalInputIcon" class="fa-solid fa-user text-loom-muted theme-muted"></i>
+              <input
+                id="newChatUsername"
+                class="w-full bg-transparent py-3 text-sm outline-none placeholder:text-loom-muted/60 theme-muted text-white"
+                placeholder="Search matching username..."
+                autocomplete="off"
+              />
+            </div>
+          </div>
+
+          <div id="groupParticipantsSection" class="hidden space-y-1">
+            <label class="text-xs text-loom-muted theme-muted block">Group Members (comma separated usernames)</label>
+            <div class="flex items-center gap-2 rounded-xl bg-black/20 theme-input px-3 ring-1 ring-loom-border">
+              <i class="fa-solid fa-users-line text-loom-muted"></i>
+              <input
+                id="groupParticipantsInput"
+                class="w-full bg-transparent py-3 text-sm outline-none text-white placeholder:text-loom-muted/40"
+                placeholder="e.g. Amina, John, Bob"
+              />
+            </div>
+          </div>
+
+          <div id="modalError" class="hidden rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-200"></div>
         </div>
-        <div class="flex items-center justify-end gap-2 border-t border-loom-border theme-border px-5 py-4">
-          <button id="cancelModalBtn" class="rounded-xl bg-white/5 px-4 py-2 text-sm font-medium ring-1 ring-loom-border theme-border hover:bg-white/10 transition" type="button">
-            Cancel
-          </button>
-          <button id="createChatBtn" class="rounded-xl bg-loom-brand px-4 py-2 text-sm font-semibold text-black hover:brightness-110 transition" type="button">
-            Add
-          </button>
+        <div class="flex items-center justify-end gap-2 border-t border-loom-border theme-border px-5 py-4 bg-loom-panel2">
+          <button id="cancelModalBtn" class="rounded-xl bg-white/5 px-4 py-2 text-sm font-medium ring-1 ring-loom-border theme-border hover:bg-white/10 transition" type="button">Cancel</button>
+          <button id="createChatBtn" class="rounded-xl bg-loom-brand px-4 py-2 text-sm font-semibold text-black hover:brightness-110 transition" type="button">Establish</button>
         </div>
       </div>
     </div>
 
-    <input id="avatarFile" type="file" accept="image/*" class="hidden" />
-
-    <!-- Toast -->
-    <div id="toast" class="pointer-events-none fixed bottom-4 left-1/2 hidden w-[min(520px,calc(100%-2rem))] -translate-x-1/2">
-      <div class="pointer-events-auto rounded-2xl bg-black/60 backdrop-blur px-4 py-3 ring-1 ring-white/10 text-sm text-loom-text shadow-soft">
+    <div id="toast" class="pointer-events-none fixed bottom-4 left-1/2 hidden w-[min(520px,calc(100%-2rem))] -translate-x-1/2 z-50">
+      <div class="pointer-events-auto rounded-2xl bg-black/90 backdrop-blur px-4 py-3 ring-1 ring-white/10 text-sm text-loom-text shadow-soft">
         <div class="flex items-start gap-3">
           <div id="toastIcon" class="mt-0.5 text-loom-brand"><i class="fa-solid fa-circle-info"></i></div>
-          <div class="min-w-0">
+          <div class="min-w-0 flex-1">
             <p id="toastTitle" class="font-semibold">Notice</p>
             <p id="toastMsg" class="mt-0.5 text-loom-muted theme-muted">—</p>
           </div>
-          <button id="toastClose" class="ml-auto h-8 w-8 grid place-items-center rounded-xl bg-white/5 hover:bg-white/10 ring-1 ring-white/10" type="button">
+          <button id="toastClose" class="h-7 w-7 grid place-items-center rounded-lg bg-white/5 hover:bg-white/10" type="button">
             <i class="fa-solid fa-xmark"></i>
           </button>
         </div>
@@ -528,35 +424,38 @@
 
     <script>
       /******************************************************************
-       * Loom — app.html
-       * Loom — web chat
-       *
-       * Data model (localStorage):
-       * {
-       *   "users": [{ "username", "avatar", "passwordHash", "createdAt" }],
-       *   "chats": {
-       *     "alice__bob": {
-       *       "id": "alice__bob",
-       *       "participants": ["alice","bob"],
-       *       "messages": [{ "id","from","to","text","ts","status","readBy":[] }],
-       *       "updatedAt": "ISO"
-       *     }
-       *   },
-       *   "presence": { "alice": { "lastSeen": "ISO" } }
-       * }
+       * Loom — Connected Bin & Real-Time Sync Framework
        ******************************************************************/
 
-      // ====== Local storage keys ======
-      const SESSION_KEY = "loom.session.v1";
-      const THEME_KEY = "loom.theme.v1";
-      const DB_KEY = "loom.db.v1";
+      // ====== Cloud Configuration Keys ======
+      const BIN_ID = "6a1665c8f47d5c455c3b94af";
+      const X_ACCESS_KEY = "$2a$10$tXgvvVb2ZtKHc/eUZvVguOfP489uh9uViUTdxv.JxAGBy/VIcqZnS";
+      const X_MASTER_KEY = "$2a$10$XDKbJJajqyGNm9ZsoEkXueGbfMG7OteKGLwJJ7BtI8mv1/PEJTLta";
+      const BIN_ENDPOINT = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
 
-      // ====== Tunables ======
-      const POLL_EVERY_MS = 1500;
+      const SESSION_KEY = "loom.session.v2";
+      const THEME_KEY = "loom.theme.v2";
+      const DB_KEY = "loom.db.v2";
+      const POLL_EVERY_MS = 1500; // Fast response interval loops
       const DEFAULT_AVATAR = "https://api.dicebear.com/7.x/bottts-neutral/svg?seed=Loom";
 
-      // ====== DOM ======
+      // ====== DOM Selectors ======
       const el = {
+        authScreen: document.getElementById("authScreen"),
+        appShell: document.getElementById("appShell"),
+        authTitle: document.getElementById("authTitle"),
+        authSubtitle: document.getElementById("authSubtitle"),
+        authToggleBtn: document.getElementById("authToggleBtn"),
+        authToggleText: document.getElementById("authToggleText"),
+        authUsername: document.getElementById("authUsername"),
+        authAvatarRow: document.getElementById("authAvatarRow"),
+        authAvatarUrl: document.getElementById("authAvatarUrl"),
+        authPassword: document.getElementById("authPassword"),
+        authPwBtn: document.getElementById("authPwBtn"),
+        authSubmitBtn: document.getElementById("authSubmitBtn"),
+        authSubmitText: document.getElementById("authSubmitText"),
+        authAlert: document.getElementById("authAlert"),
+        authYear: document.getElementById("authYear"),
         sidebar: document.getElementById("sidebar"),
         chatArea: document.getElementById("chatArea"),
         emptyState: document.getElementById("emptyState"),
@@ -571,7 +470,6 @@
         meAvatar: document.getElementById("meAvatar"),
         meName: document.getElementById("meName"),
         meHint: document.getElementById("meHint"),
-        meId: document.getElementById("meId"),
         peerAvatar: document.getElementById("peerAvatar"),
         peerName: document.getElementById("peerName"),
         peerStatus: document.getElementById("peerStatus"),
@@ -579,7 +477,6 @@
         newChatBtn: document.getElementById("newChatBtn"),
         themeBtn: document.getElementById("themeBtn"),
         cameraBtn: document.getElementById("cameraBtn"),
-        chatInfoBtn: document.getElementById("chatInfoBtn"),
         syncStatus: document.getElementById("syncStatus"),
         cameraSection: document.getElementById("cameraSection"),
         closeCameraBtn: document.getElementById("closeCameraBtn"),
@@ -588,18 +485,18 @@
         startCamBtn: document.getElementById("startCamBtn"),
         stopCamBtn: document.getElementById("stopCamBtn"),
         snapBtn: document.getElementById("snapBtn"),
-        startRecBtn: document.getElementById("startRecBtn"),
-        stopRecBtn: document.getElementById("stopRecBtn"),
-        // Modal
         modalOverlay: document.getElementById("modalOverlay"),
         closeModalBtn: document.getElementById("closeModalBtn"),
         cancelModalBtn: document.getElementById("cancelModalBtn"),
         createChatBtn: document.getElementById("createChatBtn"),
         newChatUsername: document.getElementById("newChatUsername"),
+        groupParticipantsSection: document.getElementById("groupParticipantsSection"),
+        groupParticipantsInput: document.getElementById("groupParticipantsInput"),
+        modeDirectBtn: document.getElementById("modeDirectBtn"),
+        modeGroupBtn: document.getElementById("modeGroupBtn"),
+        modalInputLabel: document.getElementById("modalInputLabel"),
+        modalInputIcon: document.getElementById("modalInputIcon"),
         modalError: document.getElementById("modalError"),
-        searchResults: document.getElementById("searchResults"),
-        avatarFile: document.getElementById("avatarFile"),
-        // Toast
         toast: document.getElementById("toast"),
         toastIcon: document.getElementById("toastIcon"),
         toastTitle: document.getElementById("toastTitle"),
@@ -607,1106 +504,580 @@
         toastClose: document.getElementById("toastClose"),
       };
 
-      // ====== State ======
+      // ====== Application State ======
       const state = {
+        isRegistering: false,
+        modalGroupMode: false,
         session: null,
-        record: { users: [], chats: {}, presence: {} },
+        record: { users: [], chats: {} },
         activeChatId: null,
-        filter: "",
+        searchQuery: "",
         pollTimer: null,
-        lastRenderedChatSignature: "",
-        lastSeenMsgByChat: {},
-        media: {
-          stream: null,
-          recorder: null,
-          recordedChunks: [],
-        },
+        stream: null,
       };
 
-      // ====== Helpers ======
-      function nowIso() {
-        return new Date().toISOString();
-      }
+      // Set correct year
+      if (el.authYear) el.authYear.textContent = new Date().getFullYear();
 
-      function safeAvatar(url) {
-        const trimmed = (url || "").trim();
-        return trimmed ? trimmed : DEFAULT_AVATAR;
-      }
-
-      function getSession() {
-        try {
-          return JSON.parse(localStorage.getItem(SESSION_KEY) || "null");
-        } catch {
-          return null;
-        }
-      }
-
-      function clearSession() {
-        localStorage.removeItem(SESSION_KEY);
-      }
-
-      // Auth is embedded; no redirect needed.
-      function redirectToLogin() {
-        showAuth();
-      }
-
-      function normalizeUsername(name) {
-        return (name || "").trim();
-      }
-
-      function chatIdFor(a, b) {
-        const [x, y] = [a, b].map((s) => s.toLowerCase()).sort();
-        return `${x}__${y}`;
+      // ====== Security Hash Function ======
+      async function sha256(text) {
+        const enc = new TextEncoder();
+        const buf = await crypto.subtle.digest("SHA-256", enc.encode(text));
+        return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, "0")).join("");
       }
 
       function ensureSchema(obj) {
         const record = obj && typeof obj === "object" ? obj : {};
         if (!Array.isArray(record.users)) record.users = [];
         if (!record.chats || typeof record.chats !== "object") record.chats = {};
-        if (!record.presence || typeof record.presence !== "object") record.presence = {};
         return record;
       }
 
-      async function sha256(text) {
-        const enc = new TextEncoder();
-        const buf = await crypto.subtle.digest("SHA-256", enc.encode(text));
-        return Array.from(new Uint8Array(buf))
-          .map((b) => b.toString(16).padStart(2, "0"))
-          .join("");
+      function safeAvatar(url) {
+        return (url || "").trim() ? url.trim() : DEFAULT_AVATAR;
       }
 
-      function setSyncStatus(text) {
-        el.syncStatus.textContent = `Sync: ${text}`;
+      // ====== Cloud Persistence Layers ======
+      async function syncFetchFromCloud() {
+        try {
+          const response = await fetch(`${BIN_ENDPOINT}/latest`, {
+            method: "GET",
+            headers: { "X-Master-Key": X_MASTER_KEY }
+          });
+          if (!response.ok) throw new Error("Database fetch error");
+          const wrapper = await response.json();
+          
+          // Smart deep merge to retain real-time incoming messages without overriding state variables
+          mergeCloudRecords(wrapper.record);
+          el.syncStatus.textContent = "Sync: Live Connected";
+        } catch (err) {
+          console.error(err);
+          el.syncStatus.textContent = "Sync: Connection Offline";
+        }
       }
 
-      function formatTime(tsIso) {
-        const d = new Date(tsIso);
-        if (Number.isNaN(d.getTime())) return "";
-        return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+      async function syncPushToCloud() {
+        try {
+          el.syncStatus.textContent = "Sync: Updating Remote...";
+          const response = await fetch(BIN_ENDPOINT, {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+              "X-Master-Key": X_MASTER_KEY
+            },
+            body: JSON.stringify(state.record)
+          });
+          if (!response.ok) throw new Error("Database push error");
+          el.syncStatus.textContent = "Sync: Saved Changes";
+        } catch (err) {
+          console.error(err);
+          el.syncStatus.textContent = "Sync: Update Suspended";
+        }
       }
 
-      function formatLastSeen(tsIso) {
-        const d = new Date(tsIso);
-        if (Number.isNaN(d.getTime())) return "—";
-        const now = Date.now();
-        const diff = now - d.getTime();
-        const mins = Math.floor(diff / 60000);
-        if (mins < 2) return "online recently";
-        if (mins < 60) return `last seen ${mins} min ago`;
-        const hrs = Math.floor(mins / 60);
-        if (hrs < 24) return `last seen ${hrs} hour${hrs === 1 ? "" : "s"} ago`;
-        return `last seen ${d.toLocaleDateString()}`;
+      function mergeCloudRecords(cloudRecord) {
+        const incoming = ensureSchema(cloudRecord);
+        
+        // Merge user registers
+        incoming.users.forEach(u => {
+          if (!state.record.users.some(existing => existing.username.toLowerCase() === u.username.toLowerCase())) {
+            state.record.users.push(u);
+          }
+        });
+
+        // Merge messages inside rooms cleanly matching unique signatures
+        Object.keys(incoming.chats).forEach(roomId => {
+          if (!state.record.chats[roomId]) {
+            state.record.chats[roomId] = incoming.chats[roomId];
+          } else {
+            const localMsgs = state.record.chats[roomId].messages || [];
+            const cloudMsgs = incoming.chats[roomId].messages || [];
+            
+            // Re-map unique list filtered via timestamps and author markers
+            const combined = [...localMsgs];
+            cloudMsgs.forEach(cm => {
+              if (!combined.some(lm => lm.ts === cm.ts && lm.from === cm.from)) {
+                combined.push(cm);
+              }
+            });
+            state.record.chats[roomId].messages = combined.sort((a,b) => new Date(a.ts) - new Date(b.ts));
+            state.record.chats[roomId].updatedAt = incoming.chats[roomId].updatedAt || state.record.chats[roomId].updatedAt;
+          }
+        });
+
+        localStorage.setItem(DB_KEY, JSON.stringify(state.record));
       }
 
-      function uid() {
-        return `${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
-      }
-
-      function makeUserId() {
-        // Human-friendly ID for searching/sharing.
-        const rand = Math.random().toString(16).slice(2, 8).toUpperCase();
-        return `LOOM-${rand}`;
-      }
-
-      function escapeHtml(s) {
-        return (s || "")
-          .replaceAll("&", "&amp;")
-          .replaceAll("<", "&lt;")
-          .replaceAll(">", "&gt;")
-          .replaceAll('"', "&quot;")
-          .replaceAll("'", "&#039;");
-      }
-
-      function toast({ title, message, kind = "info" }) {
-        const icon =
-          kind === "error"
-            ? '<i class="fa-solid fa-triangle-exclamation"></i>'
-            : kind === "success"
-              ? '<i class="fa-solid fa-circle-check"></i>'
-              : '<i class="fa-solid fa-circle-info"></i>';
-        const color = kind === "error" ? "text-red-300" : kind === "success" ? "text-loom-brand" : "text-loom-brand";
-        el.toastIcon.className = `mt-0.5 ${color}`;
-        el.toastIcon.innerHTML = icon;
-        el.toastTitle.textContent = title || "Notice";
-        el.toastMsg.textContent = message || "—";
+      // ====== UI Event Handlers & View Management ======
+      function showToast(title, msg) {
+        el.toastTitle.textContent = title;
+        el.toastMsg.textContent = msg;
         el.toast.classList.remove("hidden");
-        clearTimeout(toast._t);
-        toast._t = setTimeout(() => el.toast.classList.add("hidden"), 3600);
+        setTimeout(() => el.toast.classList.add("hidden"), 4000);
       }
 
-      function setModalError(message) {
-        if (!message) {
-          el.modalError.classList.add("hidden");
-          el.modalError.textContent = "";
+      el.toastClose.addEventListener("click", () => el.toast.classList.add("hidden"));
+
+      // Auth toggle setup
+      el.authToggleBtn.addEventListener("click", () => {
+        state.isRegistering = !state.isRegistering;
+        el.authTitle.textContent = state.isRegistering ? "Create Account" : "Welcome back";
+        el.authSubtitle.textContent = state.isRegistering ? "Sign up for a free cloud profile" : "Log in to your account";
+        el.authSubmitText.textContent = state.isRegistering ? "Register Account" : "Log in";
+        el.authToggleText.textContent = state.isRegistering ? "Login Mode" : "Register";
+        el.authAvatarRow.classList.toggle("hidden", !state.isRegistering);
+        el.authAlert.classList.add("hidden");
+      });
+
+      // Password visibility toggler
+      el.authPwBtn.addEventListener("click", () => {
+        const isPw = el.authPassword.getAttribute("type") === "password";
+        el.authPassword.setAttribute("type", isPw ? "text" : "password");
+        el.authPwBtn.innerHTML = isPw ? `<i class="fa-regular fa-eye-slash"></i>` : `<i class="fa-regular fa-eye"></i>`;
+      });
+
+      // Account Registration and Authentication processing
+      el.authSubmitBtn.addEventListener("click", async () => {
+        el.authAlert.classList.add("hidden");
+        const username = el.authUsername.value.trim();
+        const password = el.authPassword.value.trim();
+        const avatarUrl = el.authAvatarUrl.value.trim();
+
+        if (!username || !password) {
+          el.authAlert.textContent = "Please fill in all mandatory inputs.";
+          el.authAlert.classList.remove("hidden");
           return;
         }
-        el.modalError.textContent = message;
-        el.modalError.classList.remove("hidden");
+
+        await syncFetchFromCloud();
+        const hashedPw = await sha256(password);
+        const matchUser = state.record.users.find(u => u.username.toLowerCase() === username.toLowerCase());
+
+        if (state.isRegistering) {
+          if (matchUser) {
+            el.authAlert.textContent = "Username already claimed.";
+            el.authAlert.classList.remove("hidden");
+            return;
+          }
+          const newUser = { username, passwordHash: hashedPw, avatar: avatarUrl, createdAt: new Date().toISOString() };
+          state.record.users.push(newUser);
+          await syncPushToCloud();
+          showToast("Account Created", "You can now login successfully.");
+          el.authToggleBtn.click();
+        } else {
+          if (!matchUser || matchUser.passwordHash !== hashedPw) {
+            el.authAlert.textContent = "Invalid username or password match.";
+            el.authAlert.classList.remove("hidden");
+            return;
+          }
+          // Authenticated successfully
+          state.session = matchUser;
+          localStorage.setItem(SESSION_KEY, JSON.stringify(matchUser));
+          launchApplicationShell();
+        }
+      });
+
+      function launchApplicationShell() {
+        el.authScreen.classList.add("hidden");
+        el.appShell.classList.remove("hidden");
+        el.meAvatar.src = safeAvatar(state.session.avatar);
+        el.meName.textContent = state.session.username;
+
+        // Run automated poll daemon loop
+        startSyncDaemon();
+        renderChatSidebarList();
       }
 
-      function openModal() {
-        setModalError("");
+      function startSyncDaemon() {
+        if (state.pollTimer) clearInterval(state.pollTimer);
+        state.pollTimer = setInterval(async () => {
+          await syncFetchFromCloud();
+          renderChatSidebarList();
+          if (state.activeChatId) {
+            renderChatMessages(state.activeChatId);
+          }
+        }, POLL_EVERY_MS);
+      }
+
+      // ====== Navigation & Modal Logic ======
+      el.logoutBtn.addEventListener("click", () => {
+        clearInterval(state.pollTimer);
+        localStorage.removeItem(SESSION_KEY);
+        state.session = null;
+        el.appShell.classList.add("hidden");
+        el.authScreen.classList.remove("hidden");
+      });
+
+      el.newChatBtn.addEventListener("click", () => {
+        el.modalError.classList.add("hidden");
         el.newChatUsername.value = "";
+        el.groupParticipantsInput.value = "";
+        setModalMode(false);
         el.modalOverlay.classList.remove("hidden");
         el.modalOverlay.classList.add("flex");
-        setTimeout(() => el.newChatUsername.focus(), 0);
+      });
+
+      function setModalMode(isGroup) {
+        state.modalGroupMode = isGroup;
+        el.modeDirectBtn.classList.toggle("bg-loom-brand", !isGroup);
+        el.modeDirectBtn.classList.toggle("text-black", !isGroup);
+        el.modeDirectBtn.classList.toggle("text-loom-muted", isGroup);
+        
+        el.modeGroupBtn.classList.toggle("bg-loom-brand", isGroup);
+        el.modeGroupBtn.classList.toggle("text-black", isGroup);
+        el.modeGroupBtn.classList.toggle("text-loom-muted", !isGroup);
+
+        el.modalInputLabel.textContent = isGroup ? "Group Name" : "Friend's Username";
+        el.newChatUsername.placeholder = isGroup ? "e.g. Project Matrix Team" : "Search username...";
+        el.groupParticipantsSection.classList.toggle("hidden", !isGroup);
       }
+
+      el.modeDirectBtn.addEventListener("click", () => setModalMode(false));
+      el.modeGroupBtn.addEventListener("click", () => setModalMode(true));
 
       function closeModal() {
         el.modalOverlay.classList.add("hidden");
         el.modalOverlay.classList.remove("flex");
       }
+      el.closeModalBtn.addEventListener("click", closeModal);
+      el.cancelModalBtn.addEventListener("click", closeModal);
 
-      // ====== Notifications ======
-      async function ensureNotificationPermission() {
-        if (!("Notification" in window)) return false;
-        if (Notification.permission === "granted") return true;
-        if (Notification.permission === "denied") return false;
-        try {
-          const res = await Notification.requestPermission();
-          return res === "granted";
-        } catch {
-          return false;
-        }
-      }
+      // Create Group Chat or Direct Message Dialogues
+      el.createChatBtn.addEventListener("click", async () => {
+        el.modalError.classList.add("hidden");
+        const entryValue = el.newChatUsername.value.trim();
 
-      async function showMessageNotification({ title, body, chatId }) {
-        if (!("Notification" in window)) return;
-        if (Notification.permission !== "granted") return;
-        if (!("serviceWorker" in navigator)) return;
-        try {
-          const reg = await navigator.serviceWorker.ready;
-          await reg.showNotification(title, {
-            body,
-            tag: chatId || "loom-msg",
-            renotify: false,
-            icon: "icons/icon-192.png",
-            badge: "icons/icon-32.png",
-            data: { chatId: chatId || null },
-          });
-        } catch {
-          // best-effort
-        }
-      }
-
-      // ====== Local DB (localStorage) ======
-      function readDb() {
-        try {
-          const raw = localStorage.getItem(DB_KEY);
-          if (!raw) return ensureSchema({ users: [], chats: {}, presence: {} });
-          return ensureSchema(JSON.parse(raw));
-        } catch {
-          return ensureSchema({ users: [], chats: {}, presence: {} });
-        }
-      }
-
-      function writeDb(record) {
-        localStorage.setItem(DB_KEY, JSON.stringify(ensureSchema(record)));
-      }
-
-      function scheduleSave() {
-        clearTimeout(scheduleSave._t);
-        scheduleSave._t = setTimeout(() => {
-          try {
-            setSyncStatus("saving…");
-            writeDb(state.record);
-            setSyncStatus("saved");
-          } catch {
-            setSyncStatus("error");
-          }
-        }, 120);
-      }
-
-      // ====== Data accessors ======
-      function getUserByUsername(username) {
-        const u = state.record.users.find((x) => x.username?.toLowerCase() === username?.toLowerCase());
-        return u ? { ...u, avatar: safeAvatar(u.avatar) } : null;
-      }
-
-      function getUserById(id) {
-        const q = (id || "").trim().toUpperCase();
-        const u = state.record.users.find((x) => (x.id || "").toUpperCase() === q);
-        return u ? { ...u, avatar: safeAvatar(u.avatar) } : null;
-      }
-
-      function ensureUserIds() {
-        let changed = false;
-        state.record.users.forEach((u) => {
-          if (!u.id) {
-            u.id = makeUserId();
-            changed = true;
-          }
-        });
-        if (changed) writeDb(state.record);
-      }
-
-      function setSession(user) {
-        localStorage.setItem(SESSION_KEY, JSON.stringify(user));
-      }
-
-      // ====== Auth UI ======
-      const auth = {
-        screen: document.getElementById("authScreen"),
-        title: document.getElementById("authTitle"),
-        subtitle: document.getElementById("authSubtitle"),
-        toggleBtn: document.getElementById("authToggleBtn"),
-        toggleText: document.getElementById("authToggleText"),
-        username: document.getElementById("authUsername"),
-        avatarRow: document.getElementById("authAvatarRow"),
-        avatarUrl: document.getElementById("authAvatarUrl"),
-        password: document.getElementById("authPassword"),
-        pwBtn: document.getElementById("authPwBtn"),
-        submitBtn: document.getElementById("authSubmitBtn"),
-        submitText: document.getElementById("authSubmitText"),
-        alert: document.getElementById("authAlert"),
-        year: document.getElementById("authYear"),
-      };
-      let authMode = "login"; // "login" | "register"
-      let authPwVisible = false;
-
-      function setAuthAlert(message) {
-        if (!message) {
-          auth.alert.classList.add("hidden");
-          auth.alert.textContent = "";
+        if (!entryValue) {
+          el.modalError.textContent = "Please input a descriptive name/title.";
+          el.modalError.classList.remove("hidden");
           return;
         }
-        auth.alert.textContent = message;
-        auth.alert.classList.remove("hidden");
-      }
 
-      function renderAuthMode() {
-        const isRegister = authMode === "register";
-        auth.title.textContent = isRegister ? "Create your account" : "Welcome back";
-        auth.subtitle.textContent = isRegister ? "Register to start chatting" : "Log in to your account";
-        auth.toggleText.textContent = isRegister ? "Log in" : "Register";
-        auth.submitText.textContent = isRegister ? "Create account" : "Log in";
-        auth.avatarRow.classList.toggle("hidden", !isRegister);
-        setAuthAlert("");
-      }
+        if (!state.modalGroupMode) {
+          // Direct chat workflow
+          const targetUser = state.record.users.find(u => u.username.toLowerCase() === entryValue.toLowerCase());
+          if (!targetUser) {
+            el.modalError.textContent = "User not found in cloud profile logs.";
+            el.modalError.classList.remove("hidden");
+            return;
+          }
+          if (targetUser.username.toLowerCase() === state.session.username.toLowerCase()) {
+            el.modalError.textContent = "You cannot start a chat room with yourself.";
+            el.modalError.classList.remove("hidden");
+            return;
+          }
+          const sorted = [state.session.username.toLowerCase(), targetUser.username.toLowerCase()].sort();
+          const roomId = `direct__${sorted[0]}__${sorted[1]}`;
 
-      async function authRegister({ username, avatarUrl, password }) {
-        const record = readDb();
-        const exists = record.users.find((u) => u.username?.toLowerCase() === username.toLowerCase());
-        if (exists) throw new Error("Username already exists. Try a different one.");
-        const passwordHash = await sha256(password);
-        const user = { id: makeUserId(), username, avatar: safeAvatar(avatarUrl), passwordHash, createdAt: nowIso() };
-        record.users.push(user);
-        record.presence[username] = { lastSeen: nowIso() };
-        writeDb(record);
-        return { id: user.id, username: user.username, avatar: user.avatar };
-      }
+          if (!state.record.chats[roomId]) {
+            state.record.chats[roomId] = {
+              id: roomId,
+              isGroup: false,
+              participants: [state.session.username, targetUser.username],
+              messages: [],
+              updatedAt: new Date().toISOString()
+            };
+          }
+          state.activeChatId = roomId;
+          await syncPushToCloud();
+          closeModal();
+          openActiveChatRoom(roomId);
+        } else {
+          // Group setup architecture
+          const rawParticipants = el.groupParticipantsInput.value.split(",");
+          const validParticipants = [state.session.username];
 
-      async function authLogin({ username, password }) {
-        const record = readDb();
-        const user = record.users.find((u) => u.username?.toLowerCase() === username.toLowerCase());
-        if (!user) throw new Error("No account found with that username.");
-        const passwordHash = await sha256(password);
-        const storedHash = user.passwordHash || user.passcodeHash;
-        if (!storedHash || storedHash !== passwordHash) throw new Error("Incorrect password.");
-        record.presence[user.username] = { lastSeen: nowIso() };
-        writeDb(record);
-        return { id: user.id || makeUserId(), username: user.username, avatar: safeAvatar(user.avatar) };
-      }
+          rawParticipants.forEach(p => {
+            const clean = p.trim();
+            const found = state.record.users.find(u => u.username.toLowerCase() === clean.toLowerCase());
+            if (found && !validParticipants.includes(found.username)) {
+              validParticipants.push(found.username);
+            }
+          });
 
-      function showAuth() {
-        // Stop any running app polling.
-        clearInterval(state.pollTimer);
-        state.pollTimer = null;
-        state.activeChatId = null;
-        auth.screen.classList.remove("hidden");
-        el.toast.classList.add("hidden");
-        document.getElementById("appShell").classList.add("hidden");
-        setSyncStatus("idle");
-        auth.username.value = "";
-        auth.avatarUrl.value = "";
-        auth.password.value = "";
-        authMode = "login";
-        renderAuthMode();
-        setTimeout(() => auth.username.focus(), 0);
-      }
+          const roomId = `group__${Date.now()}`;
+          state.record.chats[roomId] = {
+            id: roomId,
+            isGroup: true,
+            groupName: entryValue,
+            participants: validParticipants,
+            messages: [{
+              id: `msg__${Date.now()}`,
+              from: "System",
+              text: `${state.session.username} constructed group "${entryValue}"`,
+              ts: new Date().toISOString()
+            }],
+            updatedAt: new Date().toISOString()
+          };
 
-      async function submitAuth() {
-        setAuthAlert("");
-        const username = (auth.username.value || "").trim();
-        const password = (auth.password.value || "").trim();
-        const avatarUrl = (auth.avatarUrl.value || "").trim();
-
-        if (!username) return setAuthAlert("Please enter a username.");
-        if (username.length < 2) return setAuthAlert("Username must be at least 2 characters.");
-        if (!password) return setAuthAlert("Please enter your password.");
-        if (password.length < 4) return setAuthAlert("Password must be at least 4 characters.");
-
-        auth.submitBtn.disabled = true;
-        auth.submitBtn.classList.add("opacity-80", "cursor-not-allowed");
-        try {
-          const user =
-            authMode === "register"
-              ? await authRegister({ username, avatarUrl, password })
-              : await authLogin({ username, password });
-          setSession(user);
-          await bootApp();
-        } catch (e) {
-          setAuthAlert(e?.message || "Something went wrong. Try again.");
-        } finally {
-          auth.submitBtn.disabled = false;
-          auth.submitBtn.classList.remove("opacity-80", "cursor-not-allowed");
+          state.activeChatId = roomId;
+          await syncPushToCloud();
+          closeModal();
+          openActiveChatRoom(roomId);
         }
-      }
+      });
 
-      function chatsForMe() {
-        const me = state.session.username.toLowerCase();
-        const chats = Object.values(state.record.chats || {}).filter((c) => Array.isArray(c.participants) && c.participants.map((p) => p.toLowerCase()).includes(me));
-        chats.sort((a, b) => new Date(b.updatedAt || 0).getTime() - new Date(a.updatedAt || 0).getTime());
-        return chats;
-      }
+      // ====== Sidebar and Chat Rendering Architecture ======
+      el.searchInput.addEventListener("input", (e) => {
+        state.searchQuery = e.target.value.toLowerCase();
+        renderChatSidebarList();
+      });
 
-      function peerForChat(chat) {
-        const me = state.session.username.toLowerCase();
-        const peerName = (chat.participants || []).find((p) => p.toLowerCase() !== me) || "";
-        return getUserByUsername(peerName) || { username: peerName, avatar: safeAvatar("") };
-      }
+      function renderChatSidebarList() {
+        el.chatList.innerHTML = "";
+        const activeRooms = Object.values(state.record.chats).sort((a,b) => new Date(b.updatedAt) - new Date(a.updatedAt));
 
-      // ====== Rendering ======
-      function renderChatList() {
-        const chats = chatsForMe();
-        const q = state.filter.trim().toLowerCase();
-        const filtered = q
-          ? chats.filter((c) => peerForChat(c).username.toLowerCase().includes(q))
-          : chats;
+        activeRooms.forEach(chat => {
+          // Verify access authorization
+          if (!chat.participants.map(p => p.toLowerCase()).includes(state.session.username.toLowerCase())) return;
 
-        if (!filtered.length) {
-          el.chatList.innerHTML = `
-            <div class="p-6">
-              <div class="rounded-2xl bg-black/20 theme-input ring-1 ring-loom-border theme-border p-5 text-center">
-                <div class="mx-auto mb-3 grid h-12 w-12 place-items-center rounded-2xl bg-white/5 ring-1 ring-loom-border theme-border">
-                  <i class="fa-solid fa-comments text-loom-brand"></i>
-                </div>
-                <p class="font-semibold theme-ink">No chats yet</p>
-                <p class="mt-1 text-sm text-loom-muted theme-muted">Click <span class="text-loom-text/90 theme-ink">New Chat</span> to start.</p>
+          let roomTitle = "";
+          let roomImage = DEFAULT_AVATAR;
+
+          if (chat.isGroup) {
+            roomTitle = chat.groupName || "Unnamed Group";
+            // Check lookup matching filter queries
+            if (state.searchQuery && !roomTitle.toLowerCase().includes(state.searchQuery)) return;
+          } else {
+            const absolutePeer = chat.participants.find(p => p.toLowerCase() !== state.session.username.toLowerCase()) || "Unknown User";
+            roomTitle = absolutePeer;
+            const peerObj = state.record.users.find(u => u.username.toLowerCase() === absolutePeer.toLowerCase());
+            if (peerObj) roomImage = safeAvatar(peerObj.avatar);
+            if (state.searchQuery && !roomTitle.toLowerCase().includes(state.searchQuery)) return;
+          }
+
+          const lastMsg = chat.messages && chat.messages.length ? chat.messages[chat.messages.length - 1].text : "No messages yet";
+          
+          const wrapperItem = document.createElement("div");
+          wrapperItem.className = `flex items-center gap-3 px-4 py-3 cursor-pointer transition border-b border-loom-border/30 hover:bg-white/5 ${state.activeChatId === chat.id ? "bg-white/5" : ""}`;
+          
+          wrapperItem.innerHTML = `
+            <div class="relative flex-shrink-0">
+              ${chat.isGroup ? 
+                `<div class="h-11 w-11 rounded-full bg-amber-500/20 text-loom-brand grid place-items-center text-lg ring-1 ring-white/10"><i class="fa-solid fa-users"></i></div>` :
+                `<img src="${roomImage}" class="h-11 w-11 rounded-full object-cover ring-1 ring-white/10" alt="Avatar"/>`
+              }
+            </div>
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center justify-between">
+                <p class="font-medium text-sm truncate theme-ink">${roomTitle}</p>
               </div>
+              <p class="text-xs text-loom-muted truncate theme-muted mt-0.5">${lastMsg}</p>
             </div>
           `;
-          return;
-        }
 
-        const items = filtered
-          .map((chat) => {
-            const peer = peerForChat(chat);
-            const last = (chat.messages || [])[chat.messages?.length - 1];
-            const lastText = last?.text ? last.text : "No messages yet";
-            const ts = last?.ts || chat.updatedAt || "";
-            const active = chat.id === state.activeChatId;
-            return `
-              <button
-                type="button"
-                data-chat-id="${escapeHtml(chat.id)}"
-                class="w-full text-left px-4 py-3 flex items-center gap-3 border-b border-loom-border theme-border hover:bg-white/5 transition ${active ? "bg-white/5" : ""}"
-                aria-label="Open chat with ${escapeHtml(peer.username)}"
-              >
-                <img class="h-12 w-12 rounded-full ring-1 ring-white/10 object-cover" src="${escapeHtml(peer.avatar)}" alt="${escapeHtml(peer.username)}" />
-                <div class="min-w-0 flex-1">
-                  <div class="flex items-center justify-between gap-2">
-                    <p class="truncate font-semibold theme-ink">${escapeHtml(peer.username)}</p>
-                    <span class="text-[11px] text-loom-muted theme-muted">${escapeHtml(formatTime(ts))}</span>
-                  </div>
-                  <p class="mt-0.5 truncate text-sm text-loom-muted theme-muted">${escapeHtml(lastText)}</p>
-                </div>
-              </button>
-            `;
-          })
-          .join("");
-
-        el.chatList.innerHTML = items;
+          wrapperItem.addEventListener("click", () => openActiveChatRoom(chat.id));
+          el.chatList.appendChild(wrapperItem);
+        });
       }
 
-      function messageSignature(chat) {
-        const n = chat?.messages?.length || 0;
-        const last = n ? chat.messages[n - 1] : null;
-        return `${chat?.id || ""}:${n}:${last?.id || ""}:${last?.ts || ""}`;
-      }
-
-      function renderActiveChat() {
-        const chat = state.record.chats?.[state.activeChatId];
-        if (!chat) {
-          state.activeChatId = null;
-          el.emptyState.classList.remove("hidden");
-          el.chatHeader.classList.add("hidden");
-          el.messages.classList.add("hidden");
-          el.composer.classList.add("hidden");
-          el.chatArea.classList.add("hidden");
-          return;
-        }
-
-        const peer = peerForChat(chat);
-        el.peerAvatar.src = peer.avatar;
-        el.peerName.textContent = peer.username;
-
-        const pres = state.record.presence?.[peer.username];
-        el.peerStatus.textContent = pres?.lastSeen ? formatLastSeen(pres.lastSeen) : "—";
-
-        const sig = messageSignature(chat);
-        if (sig === state.lastRenderedChatSignature) return;
-        state.lastRenderedChatSignature = sig;
-
-        el.messages.innerHTML = (chat.messages || [])
-          .map((m) => {
-            const isMe = m.from?.toLowerCase() === state.session.username.toLowerCase();
-            const bubbleBase = "max-w-[78%] md:max-w-[70%] rounded-2xl px-3.5 py-2.5 ring-1 ring-black/0";
-            const bubble =
-              isMe
-                ? `ml-auto bg-loom-bubbleOut text-loom-text ${bubbleBase}`
-                : `mr-auto bg-loom-bubbleIn theme-bubble-in text-loom-text ${bubbleBase}`;
-            const ticks = isMe
-              ? m.status === "failed"
-                ? '<i class="fa-solid fa-circle-exclamation text-red-300"></i>'
-                : '<i class="fa-solid fa-check-double text-emerald-200/90"></i>'
-              : "";
-            return `
-              <div class="mb-2 flex">
-                <div class="${bubble}">
-                  <div class="whitespace-pre-wrap break-words text-[13.5px] leading-relaxed">${escapeHtml(m.text || "")}</div>
-                  <div class="mt-1 flex items-center justify-end gap-1.5 text-[11px] text-white/70">
-                    <span>${escapeHtml(formatTime(m.ts))}</span>
-                    ${ticks ? `<span class="ml-1">${ticks}</span>` : ""}
-                  </div>
-                </div>
-              </div>
-            `;
-          })
-          .join("");
-
-        // Show active chat UI
+      function openActiveChatRoom(id) {
+        state.activeChatId = id;
         el.emptyState.classList.add("hidden");
+        el.cameraSection.classList.add("hidden");
         el.chatHeader.classList.remove("hidden");
         el.chatHeader.classList.add("flex");
         el.messages.classList.remove("hidden");
         el.composer.classList.remove("hidden");
 
-        // On mobile, show chat area and hide sidebar.
+        // Adapt viewport panels for mobile screen sizing breakpoints
+        el.sidebar.classList.add("hidden");
+        el.sidebar.classList.add("md:flex");
         el.chatArea.classList.remove("hidden");
-        if (window.innerWidth < 768) {
-          el.sidebar.classList.add("hidden");
-          el.chatArea.classList.remove("hidden");
+        el.chatArea.classList.add("flex");
+
+        const targetChat = state.record.chats[id];
+        if (targetChat.isGroup) {
+          el.peerName.textContent = targetChat.groupName;
+          el.peerStatus.textContent = `${targetChat.participants.length} room members`;
+          el.peerAvatarContainer.innerHTML = `<div class="h-10 w-10 rounded-full bg-amber-500/20 text-loom-brand grid place-items-center text-md ring-1 ring-white/10"><i class="fa-solid fa-users"></i></div>`;
+        } else {
+          const peerName = targetChat.participants.find(p => p.toLowerCase() !== state.session.username.toLowerCase());
+          el.peerName.textContent = peerName;
+          el.peerStatus.textContent = "Direct Contact";
+          const peerObj = state.record.users.find(u => u.username.toLowerCase() === peerName.toLowerCase());
+          const peerAvatarUrl = peerObj ? safeAvatar(peerObj.avatar) : DEFAULT_AVATAR;
+          el.peerAvatarContainer.innerHTML = `<img id="peerAvatar" src="${peerAvatarUrl}" class="h-10 w-10 rounded-full ring-1 ring-white/10 object-cover" />`;
         }
 
-        scrollMessagesToBottom();
+        renderChatMessages(id);
+        renderChatSidebarList();
       }
 
-      function scrollMessagesToBottom() {
-        // Let DOM paint first for accurate height.
-        requestAnimationFrame(() => {
-          el.messages.scrollTop = el.messages.scrollHeight;
-        });
-      }
-
-      // ====== Actions ======
-      function openChat(chatId) {
-        state.activeChatId = chatId;
-        state.lastRenderedChatSignature = ""; // force rerender
-        renderChatList();
-        renderActiveChat();
-      }
-
-      function upsertPresenceForMe() {
-        state.record.presence[state.session.username] = { lastSeen: nowIso() };
-      }
-
-      async function hydrate() {
-        setSyncStatus("loading…");
-        state.record = readDb();
-        ensureUserIds();
-        upsertPresenceForMe();
-        scheduleSave();
-        setSyncStatus("ready");
-      }
-
-      async function pollLatest() {
-        // In this test build, "live-ish" updates are via localStorage refresh.
-        const incoming = readDb();
-        incoming.presence[state.session.username] =
-          incoming.presence[state.session.username] || state.record.presence[state.session.username] || { lastSeen: nowIso() };
-        const prevRecord = state.record;
-        state.record = incoming;
-        renderChatList();
-        renderActiveChat();
-
-        // Notify on new incoming messages when the page isn't visible.
-        try {
-          if (document.visibilityState !== "visible") {
-            const chats = chatsForMe();
-            for (const chat of chats) {
-              const peer = peerForChat(chat);
-              const last = (chat.messages || [])[chat.messages?.length - 1];
-              if (!last) continue;
-              const lastKey = state.lastSeenMsgByChat[chat.id];
-              const isNew = lastKey !== last.id;
-              const isIncoming = last.from?.toLowerCase() !== state.session.username.toLowerCase();
-              if (isNew && isIncoming) {
-                await showMessageNotification({
-                  title: peer.username,
-                  body: last.text || "New message",
-                  chatId: chat.id,
-                });
-              }
-              state.lastSeenMsgByChat[chat.id] = last.id;
-            }
-          }
-        } catch {
-          // ignore
-        }
-      }
-
-      function ensureChatWith(peerUsername) {
-        const me = state.session.username;
-        const id = chatIdFor(me, peerUsername);
-        const existing = state.record.chats[id];
-        if (existing) return existing;
-        const chat = {
-          id,
-          participants: [me, peerUsername],
-          messages: [],
-          updatedAt: nowIso(),
-        };
-        state.record.chats[id] = chat;
-        return chat;
-      }
-
-      async function createNewChat() {
-        setModalError("");
-        const query = (el.newChatUsername.value || "").trim();
-        if (!query) return setModalError("Search for a user by username or ID.");
-
-        if (query.toLowerCase() === state.session.username.toLowerCase()) return setModalError("You can't add yourself.");
-        if (state.session.id && query.toUpperCase() === String(state.session.id).toUpperCase()) return setModalError("You can't add yourself.");
-
-        const peerUser = query.toUpperCase().startsWith("LOOM-") ? getUserById(query) : getUserByUsername(query);
-        if (!peerUser) return setModalError("No user found. Try a different username or ID.");
-
-        const chat = ensureChatWith(peerUser.username);
-        chat.updatedAt = nowIso();
-        upsertPresenceForMe();
-        scheduleSave();
-
-        closeModal();
-        toast({ kind: "success", title: "Added", message: `You can now message ${peerUser.username}.` });
-        renderChatList();
-        openChat(chat.id);
-      }
-
-      function renderUserSearchResults() {
-        const q = (el.newChatUsername.value || "").trim();
-        el.searchResults.innerHTML = "";
-        if (!q) return;
-
-        const queryUpper = q.toUpperCase();
-        const queryLower = q.toLowerCase();
-
-        const candidates = state.record.users
-          .filter((u) => u.username && u.username.toLowerCase() !== state.session.username.toLowerCase())
-          .filter((u) => {
-            const idMatch = (u.id || "").toUpperCase().includes(queryUpper);
-            const nameMatch = u.username.toLowerCase().includes(queryLower);
-            return idMatch || nameMatch;
-          })
-          .slice(0, 12);
-
-        if (!candidates.length) {
-          el.searchResults.innerHTML = `
-            <div class="rounded-xl bg-black/20 theme-input ring-1 ring-loom-border theme-border p-3 text-sm text-loom-muted theme-muted">
-              No matches.
-            </div>
-          `;
-          return;
-        }
-
-        el.searchResults.innerHTML = candidates
-          .map((u) => {
-            const avatar = safeAvatar(u.avatar);
-            return `
-              <button
-                type="button"
-                data-pick-user="${escapeHtml(u.username)}"
-                class="w-full flex items-center gap-3 rounded-xl bg-black/20 theme-input ring-1 ring-loom-border theme-border px-3 py-2.5 hover:bg-white/5 transition"
-              >
-                <img src="${escapeHtml(avatar)}" alt="${escapeHtml(u.username)}" class="h-10 w-10 rounded-full object-cover ring-1 ring-white/10" />
-                <div class="min-w-0 flex-1 text-left">
-                  <p class="truncate font-semibold theme-ink">${escapeHtml(u.username)}</p>
-                  <p class="truncate text-xs text-loom-muted theme-muted">${escapeHtml(u.id || "")}</p>
-                </div>
-                <div class="text-loom-muted theme-muted"><i class="fa-solid fa-plus"></i></div>
-              </button>
-            `;
-          })
-          .join("");
-      }
-
-      async function updateMyAvatarFromFile(file) {
-        if (!file) return;
-        if (!file.type?.startsWith("image/")) {
-          toast({ kind: "error", title: "Avatar", message: "Please choose an image file." });
-          return;
-        }
-        const maxBytes = 900 * 1024;
-        if (file.size > maxBytes) {
-          toast({ kind: "error", title: "Avatar", message: "Image is too large. Please use a smaller image (< 900KB)." });
-          return;
-        }
-
-        const dataUrl = await new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = () => resolve(String(reader.result || ""));
-          reader.onerror = () => reject(new Error("Failed to read image."));
-          reader.readAsDataURL(file);
-        });
-
-        // Update session + DB user record.
-        const session = getSession() || state.session;
-        session.avatar = dataUrl;
-        setSession(session);
-        state.session = session;
-
-        const record = readDb();
-        const u = record.users.find((x) => x.username?.toLowerCase() === session.username.toLowerCase());
-        if (u) u.avatar = dataUrl;
-        writeDb(record);
-        state.record = record;
-
-        el.meAvatar.src = dataUrl;
-        toast({ kind: "success", title: "Avatar updated", message: "Your profile picture has been updated." });
-        renderChatList();
-        renderActiveChat();
-      }
-
-      async function sendMessage() {
-        const chat = state.record.chats?.[state.activeChatId];
-        if (!chat) return;
-        const text = (el.messageInput.value || "").trim();
-        if (!text) return;
-
-        const peer = peerForChat(chat);
-        const msg = {
-          id: uid(),
-          from: state.session.username,
-          to: peer.username,
-          text,
-          ts: nowIso(),
-          status: "sent",
-          readBy: [state.session.username],
-        };
-
-        el.messageInput.value = "";
-        autosizeTextarea();
-
-        // Optimistic UI update
-        chat.messages.push(msg);
-        chat.updatedAt = msg.ts;
-        upsertPresenceForMe();
-        state.lastRenderedChatSignature = ""; // rerender messages
-        renderChatList();
-        renderActiveChat();
-
-        scheduleSave();
-      }
-
-      // ====== Camera / Mic ======
-      async function startCamera({ withAudio }) {
-        if (!navigator.mediaDevices?.getUserMedia) {
-          toast({ kind: "error", title: "Camera", message: "Camera is not supported in this browser." });
-          return;
-        }
-        try {
-          const stream = await navigator.mediaDevices.getUserMedia({
-            video: { facingMode: "user" },
-            audio: Boolean(withAudio),
-          });
-          stopCamera();
-          state.media.stream = stream;
-          el.camVideo.srcObject = stream;
-          await el.camVideo.play().catch(() => {});
-        } catch {
-          toast({ kind: "error", title: "Permission needed", message: "Please allow camera/microphone access to use this feature." });
-        }
-      }
-
-      function stopCamera() {
-        if (state.media.recorder && state.media.recorder.state !== "inactive") {
-          try {
-            state.media.recorder.stop();
-          } catch {
-            // ignore
-          }
-        }
-        state.media.recorder = null;
-        state.media.recordedChunks = [];
-        if (state.media.stream) {
-          for (const t of state.media.stream.getTracks()) t.stop();
-          state.media.stream = null;
-        }
-        if (el.camVideo) el.camVideo.srcObject = null;
-      }
-
-      async function takePhotoAndSend() {
-        const chat = state.record.chats?.[state.activeChatId];
-        if (!chat) return toast({ kind: "info", title: "Camera", message: "Open a chat first to send a photo." });
-        if (!state.media.stream) return toast({ kind: "info", title: "Camera", message: "Start the camera first." });
-
-        const video = el.camVideo;
-        const canvas = el.camCanvas;
-        const w = video.videoWidth || 640;
-        const h = video.videoHeight || 480;
-        canvas.width = w;
-        canvas.height = h;
-        const ctx = canvas.getContext("2d");
-        ctx.drawImage(video, 0, 0, w, h);
-        const dataUrl = canvas.toDataURL("image/jpeg", 0.88);
-
-        const peer = peerForChat(chat);
-        const msg = {
-          id: uid(),
-          from: state.session.username,
-          to: peer.username,
-          text: "[Photo]",
-          media: { type: "image", dataUrl },
-          ts: nowIso(),
-          status: "sent",
-          readBy: [state.session.username],
-        };
-        chat.messages.push(msg);
-        chat.updatedAt = msg.ts;
-        upsertPresenceForMe();
-        state.lastRenderedChatSignature = "";
-        renderChatList();
-        renderActiveChat();
-        scheduleSave();
-      }
-
-      function startRecording() {
-        const chat = state.record.chats?.[state.activeChatId];
-        if (!chat) return toast({ kind: "info", title: "Recording", message: "Open a chat first to record." });
-        if (!state.media.stream) return toast({ kind: "info", title: "Recording", message: "Start the camera first." });
-        if (!window.MediaRecorder) return toast({ kind: "error", title: "Recording", message: "Recording is not supported in this browser." });
-
-        try {
-          state.media.recordedChunks = [];
-          const rec = new MediaRecorder(state.media.stream, { mimeType: "video/webm" });
-          state.media.recorder = rec;
-          rec.ondataavailable = (e) => {
-            if (e.data && e.data.size) state.media.recordedChunks.push(e.data);
-          };
-          rec.onstop = async () => {
-            const blob = new Blob(state.media.recordedChunks, { type: "video/webm" });
-            state.media.recordedChunks = [];
-            if (!blob.size) return;
-            // Convert to data URL for storage
-            const dataUrl = await new Promise((resolve, reject) => {
-              const reader = new FileReader();
-              reader.onload = () => resolve(String(reader.result || ""));
-              reader.onerror = () => reject(new Error("Failed to read recording."));
-              reader.readAsDataURL(blob);
-            }).catch(() => "");
-            if (!dataUrl) return;
-
-            const active = state.record.chats?.[state.activeChatId];
-            if (!active) return;
-            const peer = peerForChat(active);
-            const msg = {
-              id: uid(),
-              from: state.session.username,
-              to: peer.username,
-              text: "[Video]",
-              media: { type: "video", dataUrl },
-              ts: nowIso(),
-              status: "sent",
-              readBy: [state.session.username],
-            };
-            active.messages.push(msg);
-            active.updatedAt = msg.ts;
-            upsertPresenceForMe();
-            state.lastRenderedChatSignature = "";
-            renderChatList();
-            renderActiveChat();
-            scheduleSave();
-          };
-          rec.start(250);
-          toast({ kind: "success", title: "Recording", message: "Recording started." });
-        } catch {
-          toast({ kind: "error", title: "Recording", message: "Could not start recording." });
-        }
-      }
-
-      function stopRecording() {
-        const rec = state.media.recorder;
-        if (!rec) return;
-        try {
-          if (rec.state !== "inactive") rec.stop();
-          toast({ kind: "info", title: "Recording", message: "Recording saved to chat." });
-        } catch {
-          // ignore
-        }
-      }
-
-      function autosizeTextarea() {
-        // Basic autosize for 1–5 lines.
-        el.messageInput.style.height = "0px";
-        const h = Math.min(el.messageInput.scrollHeight, 160);
-        el.messageInput.style.height = `${Math.max(h, 48)}px`;
-      }
-
-      // ====== Theme ======
-      function getTheme() {
-        return localStorage.getItem(THEME_KEY) || "dark";
-      }
-      function setTheme(theme) {
-        localStorage.setItem(THEME_KEY, theme);
-        document.documentElement.setAttribute("data-theme", theme);
-        el.themeBtn.innerHTML = theme === "light" ? '<i class="fa-solid fa-sun"></i>' : '<i class="fa-solid fa-moon"></i>';
-      }
-      function toggleTheme() {
-        setTheme(getTheme() === "dark" ? "light" : "dark");
-      }
-
-      // ====== Event wiring ======
-      function wireEvents() {
-        if (state._wired) return;
-        state._wired = true;
-        el.searchInput.addEventListener("input", () => {
-          state.filter = el.searchInput.value || "";
-          renderChatList();
-        });
-
-        el.chatList.addEventListener("click", (e) => {
-          const btn = e.target.closest("button[data-chat-id]");
-          if (!btn) return;
-          openChat(btn.getAttribute("data-chat-id"));
-        });
-
-        el.newChatBtn.addEventListener("click", openModal);
-        el.closeModalBtn.addEventListener("click", closeModal);
-        el.cancelModalBtn.addEventListener("click", closeModal);
-        el.modalOverlay.addEventListener("click", (e) => {
-          if (e.target === el.modalOverlay) closeModal();
-        });
-        el.createChatBtn.addEventListener("click", createNewChat);
-        el.newChatUsername.addEventListener("input", () => {
-          setModalError("");
-          renderUserSearchResults();
-        });
-        el.newChatUsername.addEventListener("keydown", (e) => {
-          if (e.key === "Enter") createNewChat();
-        });
-        el.searchResults.addEventListener("click", (e) => {
-          const btn = e.target.closest("button[data-pick-user]");
-          if (!btn) return;
-          el.newChatUsername.value = btn.getAttribute("data-pick-user") || "";
-          renderUserSearchResults();
-          createNewChat();
-        });
-
-        el.logoutBtn.addEventListener("click", () => {
-          clearSession();
-          showAuth();
-        });
-
-        el.themeBtn.addEventListener("click", toggleTheme);
-
-        el.cameraBtn.addEventListener("click", () => {
-          // Show camera section (mobile: hide sidebar)
-          el.emptyState.classList.add("hidden");
-          el.chatHeader.classList.add("hidden");
-          el.messages.classList.add("hidden");
-          el.composer.classList.add("hidden");
-          el.cameraSection.classList.remove("hidden");
-          el.chatArea.classList.remove("hidden");
-          if (window.innerWidth < 768) el.sidebar.classList.add("hidden");
-        });
-        el.closeCameraBtn.addEventListener("click", () => {
-          el.cameraSection.classList.add("hidden");
-          stopCamera();
-          // Return to empty state if no chat active
-          if (state.activeChatId) {
-            renderActiveChat();
-          } else {
-            el.emptyState.classList.remove("hidden");
-          }
-          if (window.innerWidth < 768) el.sidebar.classList.remove("hidden");
-        });
-        el.startCamBtn.addEventListener("click", () => startCamera({ withAudio: true }));
-        el.stopCamBtn.addEventListener("click", stopCamera);
-        el.snapBtn.addEventListener("click", takePhotoAndSend);
-        el.startRecBtn.addEventListener("click", startRecording);
-        el.stopRecBtn.addEventListener("click", stopRecording);
-
-        el.backBtn.addEventListener("click", () => {
-          // Mobile: go back to sidebar list.
-          el.chatArea.classList.add("hidden");
-          el.sidebar.classList.remove("hidden");
-        });
-
-        el.toastClose.addEventListener("click", () => el.toast.classList.add("hidden"));
-
-        el.sendBtn.addEventListener("click", sendMessage);
-        el.messageInput.addEventListener("input", autosizeTextarea);
-        el.messageInput.addEventListener("keydown", (e) => {
-          // Enter sends; Shift+Enter inserts newline.
-          if (e.key === "Enter" && !e.shiftKey) {
-            e.preventDefault();
-            sendMessage();
-          }
-        });
-
-        el.chatInfoBtn.addEventListener("click", () => {
-          const chat = state.record.chats?.[state.activeChatId];
-          if (!chat) return;
-          const peer = peerForChat(chat);
-          toast({
-            title: peer.username,
-            message: `Chat ID: ${chat.id}`,
-            kind: "info",
-          });
-        });
-
-        // Keep presence reasonably fresh.
-        window.addEventListener("focus", () => {
-          upsertPresenceForMe();
-          scheduleSave();
-        });
-
-        // Avatar upload after login
-        el.meAvatar.addEventListener("click", () => el.avatarFile.click());
-        el.meAvatar.classList.add("cursor-pointer");
-        el.avatarFile.addEventListener("change", () => {
-          const f = el.avatarFile.files?.[0];
-          el.avatarFile.value = "";
-          updateMyAvatarFromFile(f).catch(() => toast({ kind: "error", title: "Avatar", message: "Could not update avatar." }));
-        });
-      }
-
-      // ====== Boot ======
-      async function bootApp() {
-        state.session = getSession();
-        if (!state.session?.username) return showAuth();
-
-        // Default to sleek dark mode, with an optional toggle.
-        setTheme(getTheme());
-
-        // Show app shell, hide auth.
-        auth.screen.classList.add("hidden");
-        document.getElementById("appShell").classList.remove("hidden");
-
-        // Inject user info in header
-        el.meName.textContent = state.session.username;
-        el.meAvatar.src = safeAvatar(state.session.avatar);
-        el.meHint.textContent = "Welcome to Loom";
-        el.meId.textContent = state.session.id ? `ID: ${state.session.id}` : "";
-
-        // Ask for notification permission after login (politely, once per session).
-        if ("Notification" in window && Notification.permission === "default") {
-          toast({
-            title: "Notifications",
-            message: "Enable notifications so you don't miss new messages.",
-            kind: "info",
-          });
-          // Don't block; request after a short delay to avoid being intrusive.
-          setTimeout(() => ensureNotificationPermission().catch(() => {}), 900);
-        }
-
-        // PWA: inline manifest + service worker (no extra files).
-        try {
-          const manifest = {
-            name: "Loom",
-            short_name: "Loom",
-            description: "Loom — modern web chat",
-            start_url: "app.html",
-            scope: "./",
-            display: "standalone",
-            background_color: "#0b141a",
-            theme_color: "#f59e0b",
-            icons: [
-              { src: "logo.png", sizes: "192x192", type: "image/png" },
-              { src: "logo.png", sizes: "512x512", type: "image/png" },
-            ],
-          };
-          const manifestHref = `data:application/manifest+json;charset=utf-8,${encodeURIComponent(JSON.stringify(manifest))}`;
-          const link = document.createElement("link");
-          link.rel = "manifest";
-          link.href = manifestHref;
-          document.head.appendChild(link);
-
-          if ("serviceWorker" in navigator && window.isSecureContext) {
-            const swCode = `
-              self.addEventListener('install', (e) => self.skipWaiting());
-              self.addEventListener('activate', (e) => e.waitUntil(self.clients.claim()));
-              self.addEventListener('fetch', () => {});
-            `;
-            const swUrl = URL.createObjectURL(new Blob([swCode], { type: "text/javascript" }));
-            navigator.serviceWorker.register(swUrl).catch(() => {});
-          }
-        } catch {
-          // PWA support is best-effort.
-        }
-
-        // On small screens, start with sidebar visible.
+      el.backBtn.addEventListener("click", () => {
+        state.activeChatId = null;
         el.chatArea.classList.add("hidden");
+        el.chatArea.classList.remove("flex");
         el.sidebar.classList.remove("hidden");
+        el.sidebar.classList.add("flex");
+      });
 
-        wireEvents();
-        autosizeTextarea();
+      function renderChatMessages(id) {
+        const targetChat = state.record.chats[id];
+        if (!targetChat) return;
 
-        await hydrate();
-        renderChatList();
+        // Save current viewing displacement location to adjust dynamic automatic adjustments
+        const checkBottom = el.messages.scrollHeight - el.messages.scrollTop <= el.messages.clientHeight + 120;
 
-        // Prime last-seen pointers for notifications.
-        try {
-          for (const chat of chatsForMe()) {
-            const last = (chat.messages || [])[chat.messages?.length - 1];
-            if (last) state.lastSeenMsgByChat[chat.id] = last.id;
+        el.messages.innerHTML = "";
+        const currentMsgs = targetChat.messages || [];
+
+        currentMsgs.forEach(msg => {
+          const isMe = msg.from.toLowerCase() === state.session.username.toLowerCase();
+          const isSys = msg.from === "System";
+
+          const msgRow = document.createElement("div");
+          msgRow.className = `flex w-full ${isSys ? "justify-center" : isMe ? "justify-end" : "justify-start"}`;
+
+          if (isSys) {
+            msgRow.innerHTML = `
+              <div class="bg-black/40 border border-loom-border/20 text-[11px] text-loom-muted rounded-lg px-3 py-1 text-center max-w-sm">
+                ${msg.text}
+              </div>
+            `;
+          } else {
+            const isImage = msg.text.startsWith("data:image/");
+            msgRow.innerHTML = `
+              <div class="max-w-[75%] rounded-2xl px-4 py-2.5 shadow-sm text-sm relative group ${isMe ? "bg-loom-bubbleOut text-white rounded-br-none" : "bg-loom-bubbleIn theme-bubble-in theme-ink rounded-bl-none text-loom-text"}" style="word-break: break-word;">
+                ${targetChat.isGroup && !isMe ? `<p class="text-[11px] text-loom-brand font-bold mb-1 opacity-90">${msg.from}</p>` : ""}
+                ${isImage ? `<img src="${msg.text}" class="rounded-lg max-h-48 w-auto object-cover mt-1 cursor-pointer" onclick="window.open('${msg.text}')"/>` : `<p>${msg.text}</p>`}
+                <p class="text-[10px] text-right mt-1 opacity-40 select-none">${new Date(msg.ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+              </div>
+            `;
           }
-        } catch {
-          // ignore
-        }
 
-        // Poll for "live-ish" updates.
-        clearInterval(state.pollTimer);
-        state.pollTimer = setInterval(pollLatest, POLL_EVERY_MS);
+          el.messages.appendChild(msgRow);
+        });
+
+        if (checkBottom) {
+          el.messages.scrollTop = el.messages.scrollHeight;
+        }
       }
 
-      (function init() {
-        // PWA offline support (service worker). Requires HTTPS (or localhost).
-        if ("serviceWorker" in navigator && window.isSecureContext) {
-          navigator.serviceWorker.register("./sw.js").catch(() => {});
+      // Transmission of instantaneous messages
+      async function transmitMessagePayload(contentStr) {
+        if (!contentStr || !state.activeChatId) return;
+        const currentChat = state.record.chats[state.activeChatId];
+        if (!currentChat) return;
+
+        const cleanMsg = {
+          id: `msg__${Date.now()}__${Math.random().toString(36).substr(2, 5)}`,
+          from: state.session.username,
+          text: contentStr,
+          ts: new Date().toISOString()
+        };
+
+        currentChat.messages.push(cleanMsg);
+        currentChat.updatedAt = new Date().toISOString();
+        
+        // Instant visual update before network completion finishes
+        renderChatMessages(state.activeChatId);
+        el.messageInput.value = "";
+        
+        await syncPushToCloud();
+        renderChatSidebarList();
+      }
+
+      el.sendBtn.addEventListener("click", () => transmitMessagePayload(el.messageInput.value.trim()));
+      el.messageInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" && !e.shiftKey) {
+          e.preventDefault();
+          transmitMessagePayload(el.messageInput.value.trim());
+        }
+      });
+
+      // ====== Built-In Camera Architecture ======
+      el.cameraBtn.addEventListener("click", () => {
+        el.emptyState.classList.add("hidden");
+        el.chatHeader.classList.add("hidden");
+        el.messages.classList.add("hidden");
+        el.composer.classList.add("hidden");
+        el.cameraSection.classList.remove("hidden");
+      });
+
+      el.closeCameraBtn.addEventListener("click", () => {
+        el.cameraSection.classList.add("hidden");
+        if (state.activeChatId) {
+          openActiveChatRoom(state.activeChatId);
+        } else {
+          el.emptyState.classList.remove("hidden");
+        }
+        stopCameraHardware();
+      });
+
+      el.startCamBtn.addEventListener("click", async () => {
+        try {
+          state.stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+          el.camVideo.srcObject = state.stream;
+          showToast("Camera Active", "Hardware engine streaming live feed safely.");
+        } catch (err) {
+          showToast("Permission Denied", "Unable to establish localized capture parameters.");
+        }
+      });
+
+      el.snapBtn.addEventListener("click", () => {
+        if (!state.stream) {
+          showToast("Error", "Please wake up the hardware camera engine first.");
+          return;
+        }
+        if (!state.activeChatId) {
+          showToast("Notice", "Open a valid conversation room to transmit media transfers.");
+          return;
         }
 
-        // Allow service worker notification clicks to open a chat.
-        if ("serviceWorker" in navigator) {
-          navigator.serviceWorker.addEventListener("message", (event) => {
-            const data = event.data || {};
-            if (data.type === "loom:openChat" && data.chatId) {
-              openChat(data.chatId);
-            }
-          });
+        const context = el.camCanvas.getContext("2d");
+        el.camCanvas.width = el.camVideo.videoWidth || 640;
+        el.camCanvas.height = el.camVideo.videoHeight || 480;
+        context.drawImage(el.camVideo, 0, 0, el.camCanvas.width, el.camCanvas.height);
+
+        const dataUrl = el.camCanvas.toDataURL("image/jpeg", 0.7);
+        transmitMessagePayload(dataUrl);
+        showToast("Success", "Snapshot packaged and pushed directly to cloud room pipeline.");
+        el.closeCameraBtn.click();
+      });
+
+      function stopCameraHardware() {
+        if (state.stream) {
+          state.stream.getTracks().forEach(track => track.stop());
+          state.stream = null;
+          el.camVideo.srcObject = null;
         }
+      }
 
-        // Auth init
-        auth.year.textContent = String(new Date().getFullYear());
-        renderAuthMode();
-        auth.toggleBtn.addEventListener("click", () => {
-          authMode = authMode === "login" ? "register" : "login";
-          renderAuthMode();
-        });
-        auth.pwBtn.addEventListener("click", () => {
-          authPwVisible = !authPwVisible;
-          auth.password.type = authPwVisible ? "text" : "password";
-          auth.pwBtn.innerHTML = authPwVisible ? '<i class="fa-regular fa-eye-slash"></i>' : '<i class="fa-regular fa-eye"></i>';
-        });
-        auth.submitBtn.addEventListener("click", submitAuth);
-        document.addEventListener("keydown", (e) => {
-          if (e.key === "Enter" && !document.getElementById("appShell").classList.contains("hidden")) return;
-          if (e.key === "Enter" && !auth.screen.classList.contains("hidden")) submitAuth();
-        });
+      el.stopCamBtn.addEventListener("click", stopCameraHardware);
 
-        // Start
-        bootApp();
-      })();
+      // ====== Light & Dark Mode UI Controls ======
+      el.themeBtn.addEventListener("click", () => {
+        const explicitTheme = document.documentElement.getAttribute("data-theme") === "light" ? "dark" : "light";
+        document.documentElement.setAttribute("data-theme", explicitTheme);
+        localStorage.setItem(THEME_KEY, explicitTheme);
+        el.themeBtn.innerHTML = explicitTheme === "light" ? `<i class="fa-solid fa-sun"></i>` : `<i class="fa-solid fa-moon"></i>`;
+      });
+
+      // App Initialization lifecycle routines
+      window.addEventListener("DOMContentLoaded", async () => {
+        // Hydrate configuration setup states
+        const savedTheme = localStorage.getItem(THEME_KEY) || "dark";
+        document.documentElement.setAttribute("data-theme", savedTheme);
+        el.themeBtn.innerHTML = savedTheme === "light" ? `<i class="fa-solid fa-sun"></i>` : `<i class="fa-solid fa-moon"></i>`;
+
+        try {
+          const cache = localStorage.getItem(DB_KEY);
+          if (cache) state.record = ensureSchema(JSON.parse(cache));
+        } catch(e){}
+
+        // Initial Cloud Sync fetch operation
+        await syncFetchFromCloud();
+
+        // Active active identity checks
+        try {
+          const authUser = JSON.parse(localStorage.getItem(SESSION_KEY));
+          if (authUser && authUser.username) {
+            state.session = authUser;
+            launchApplicationShell();
+          }
+        } catch(e){}
+      });
     </script>
   </body>
 </html>
