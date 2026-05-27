@@ -428,6 +428,7 @@
     <script>
       /******************************************************************
        * Loom — Connected Bin & Real-Time Sync Framework
+       * Refactored by Senior Engineering for Robust Synchronization
        ******************************************************************/
 
       // ====== Cloud Configuration Keys ======
@@ -441,6 +442,7 @@
       const DB_KEY = "loom.db.v2";
       const POLL_EVERY_MS = 1500; // Fast response interval loops
       const DEFAULT_AVATAR = "https://api.dicebear.com/7.x/bottts-neutral/svg?seed=Loom";
+      const MAX_RETRIES = 3;
 
       // ====== DOM Selectors ======
       const el = {
@@ -512,6 +514,7 @@
       const state = {
         isRegistering: false,
         modalGroupMode: false,
+        isSyncing: false, // Prevents overlapping sync operations
         session: null,
         record: { users: [], chats: {} },
         activeChatId: null,
@@ -530,13 +533,24 @@
         return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, "0")).join("");
       }
 
+      /**
+       * Defensive validation for incoming/outgoing cloud data
+       */
       function ensureSchema(obj) {
-        const record = obj && typeof obj === "object" ? obj : {};
-        if (!Array.isArray(record.users)) record.users = [];
-        if (!record.chats || typeof record.chats !== "object") record.chats = {};
+        if (!obj || typeof obj !== "object") obj = {};
+        const record = {
+          users: Array.isArray(obj.users) ? obj.users : [],
+          chats: (obj.chats && typeof obj.chats === "object") ? obj.chats : {}
+        };
+
+        // Ensure every chat has essential sub-structures
         Object.values(record.chats).forEach(chat => {
+          if (!chat.id) chat.id = `err_${Math.random()}`;
+          if (!Array.isArray(chat.participants)) chat.participants = [];
+          if (!Array.isArray(chat.messages)) chat.messages = [];
           if (!chat.lastSeen) chat.lastSeen = {};
           if (!chat.typing) chat.typing = {};
+          if (!chat.updatedAt) chat.updatedAt = new Date().toISOString();
         });
         return record;
       }
@@ -552,32 +566,67 @@
         }
       }
 
-      // ====== Cloud Persistence Layers ======
-      async function syncFetchFromCloud() {
+      /**
+       * Persistent local storage with error recovery
+       */
+      function saveToLocalStorage() {
         try {
-          const response = await fetch(`${BIN_ENDPOINT}/latest`, {
-            method: "GET",
-            headers: { 
-              "X-Master-Key": X_MASTER_KEY,
-              "X-Access-Key": X_ACCESS_KEY
-            }
-          });
-          if (!response.ok) throw new Error("Database fetch error");
-          const wrapper = await response.json();
-          
-          // Smart deep merge to retain real-time incoming messages without overriding state variables
-          mergeCloudRecords(wrapper.record);
-          updateSyncUI("Sync: Live Connected", "bg-green-500");
-        } catch (err) {
-          console.error(err);
-          updateSyncUI("Sync: Connection Offline", "bg-red-500");
+          localStorage.setItem(DB_KEY, JSON.stringify(state.record));
+        } catch (e) {
+          console.error("LocalStorage write failed:", e);
         }
       }
 
-      async function syncPushToCloud() {
+      // ====== Cloud Persistence Layers ======
+
+      /**
+       * Robust fetch with automatic merge
+       */
+      async function syncFetchFromCloud(retryCount = 0) {
+        if (state.isSyncing && retryCount === 0) return;
+        state.isSyncing = true;
+        
         try {
-          updateSyncUI("Sync: Updating Remote...", "bg-amber-500", true);
-          const response = await fetch(BIN_ENDPOINT, {
+          const res = await fetch(`${BIN_ENDPOINT}/latest`, {
+            headers: { "X-Master-Key": X_MASTER_KEY, "X-Access-Key": X_ACCESS_KEY }
+          });
+          
+          if (!res.ok) throw new Error(`Fetch failed: ${res.status}`);
+          const data = await res.json();
+          
+          console.log("[Sync] Remote data fetched successfully.");
+          mergeCloudRecords(data.record);
+          updateSyncUI("Sync: Live Connected", "bg-green-500");
+        } catch (err) {
+          console.warn(`[Sync] Fetch attempt ${retryCount + 1} failed:`, err);
+          if (retryCount < MAX_RETRIES) {
+            setTimeout(() => syncFetchFromCloud(retryCount + 1), 1000 * (retryCount + 1));
+          } else {
+            updateSyncUI("Sync: Connection Offline", "bg-red-500");
+          }
+        } finally {
+          state.isSyncing = false;
+        }
+      }
+
+      /**
+       * Atomic push with "Fetch-First" conflict resolution
+       */
+      async function syncPushToCloud(retryCount = 0) {
+        updateSyncUI("Sync: Updating Remote...", "bg-amber-500", true);
+        
+        try {
+          // Step 1: Fetch latest to ensure we don't overwrite others' messages
+          const checkRes = await fetch(`${BIN_ENDPOINT}/latest`, {
+            headers: { "X-Master-Key": X_MASTER_KEY, "X-Access-Key": X_ACCESS_KEY }
+          });
+          if (checkRes.ok) {
+            const latest = await checkRes.json();
+            mergeCloudRecords(latest.record);
+          }
+
+          // Step 2: Push merged state
+          const pushRes = await fetch(BIN_ENDPOINT, {
             method: "PUT",
             headers: {
               "Content-Type": "application/json",
@@ -587,46 +636,55 @@
             },
             body: JSON.stringify(state.record)
           });
-          if (!response.ok) throw new Error("Database push error");
+
+          if (!pushRes.ok) throw new Error(`Push failed: ${pushRes.status}`);
+          
+          console.log("[Sync] Remote data updated and merged.");
+          saveToLocalStorage();
           updateSyncUI("Sync: Saved Changes", "bg-green-500");
         } catch (err) {
-          console.error(err);
-          updateSyncUI("Sync: Update Suspended", "bg-red-500");
+          console.error(`[Sync] Push attempt ${retryCount + 1} failed:`, err);
+          if (retryCount < MAX_RETRIES) {
+            setTimeout(() => syncPushToCloud(retryCount + 1), 1500);
+          } else {
+            updateSyncUI("Sync: Update Suspended", "bg-red-500");
+          }
         }
       }
 
+      /**
+       * Deterministic Merge Logic (Deduplication Engine)
+       */
       function mergeCloudRecords(cloudRecord) {
+        if (!cloudRecord) return;
         const incoming = ensureSchema(cloudRecord);
         
-        // Merge user registers
+        // 1. Merge Users
         incoming.users.forEach(u => {
           if (!state.record.users.some(existing => existing.username.toLowerCase() === u.username.toLowerCase())) {
             state.record.users.push(u);
           }
         });
 
-        // Merge messages inside rooms cleanly matching unique signatures
+        // 2. Merge Chats and Messages
         Object.keys(incoming.chats).forEach(roomId => {
+          const remoteChat = incoming.chats[roomId];
           if (!state.record.chats[roomId]) {
-            state.record.chats[roomId] = incoming.chats[roomId];
+            state.record.chats[roomId] = remoteChat;
           } else {
-            const localMsgs = state.record.chats[roomId].messages || [];
-            const cloudMsgs = incoming.chats[roomId].messages || [];
+            const localChat = state.record.chats[roomId];
             
-            // Re-map unique list filtered via timestamps and author markers
-            const combined = [...localMsgs];
-            cloudMsgs.forEach(cm => {
-              if (!combined.some(lm => lm.ts === cm.ts && lm.from === cm.from)) {
-                combined.push(cm);
-              }
-            });
-            state.record.chats[roomId].messages = combined.sort((a,b) => new Date(a.ts) - new Date(b.ts));
-            state.record.chats[roomId].updatedAt = incoming.chats[roomId].updatedAt || state.record.chats[roomId].updatedAt;
+            // Use Map for O(1) deduplication by message ID
+            const msgMap = new Map();
+            localChat.messages.forEach(m => msgMap.set(m.id, m));
+            remoteChat.messages.forEach(m => msgMap.set(m.id, m));
             
-            // Sync lastSeen status
-            if (!state.record.chats[roomId].lastSeen) state.record.chats[roomId].lastSeen = {};
-            if (incoming.chats[roomId].lastSeen) {
-              Object.entries(incoming.chats[roomId].lastSeen).forEach(([user, ts]) => {
+            localChat.messages = Array.from(msgMap.values()).sort((a,b) => new Date(a.ts) - new Date(b.ts));
+            localChat.updatedAt = new Date(remoteChat.updatedAt) > new Date(localChat.updatedAt) ? remoteChat.updatedAt : localChat.updatedAt;
+            
+            // Sync Meta (Last Seen)
+            if (remoteChat.lastSeen) {
+              Object.entries(remoteChat.lastSeen).forEach(([user, ts]) => {
                 const localTs = state.record.chats[roomId].lastSeen[user];
                 if (!localTs || new Date(ts) > new Date(localTs)) {
                   state.record.chats[roomId].lastSeen[user] = ts;
@@ -634,11 +692,9 @@
               });
             }
 
-            // Sync typing status
-            if (!state.record.chats[roomId].typing) state.record.chats[roomId].typing = {};
-            if (incoming.chats[roomId].typing) {
-              Object.entries(incoming.chats[roomId].typing).forEach(([user, ts]) => {
-                // Only sync others' typing status to avoid overwriting own local typing state mid-keystroke
+            // Sync Meta (Typing)
+            if (remoteChat.typing && state.session) {
+              Object.entries(remoteChat.typing).forEach(([user, ts]) => {
                 if (user.toLowerCase() !== state.session.username.toLowerCase()) {
                   state.record.chats[roomId].typing[user] = ts;
                 }
@@ -647,7 +703,7 @@
           }
         });
 
-        localStorage.setItem(DB_KEY, JSON.stringify(state.record));
+        saveToLocalStorage();
       }
 
       // ====== UI Event Handlers & View Management ======
@@ -715,11 +771,11 @@
           // Authenticated successfully
           state.session = matchUser;
           localStorage.setItem(SESSION_KEY, JSON.stringify(matchUser));
-          launchApplicationShell();
+          await launchApplicationShell();
         }
       });
 
-      function launchApplicationShell() {
+      async function launchApplicationShell() {
         el.authScreen.classList.add("hidden");
         el.appShell.classList.remove("hidden");
         el.meAvatar.src = safeAvatar(state.session.avatar);
@@ -731,6 +787,7 @@
       }
 
       function startSyncDaemon() {
+        if (!state.session) return;
         if (state.pollTimer) clearInterval(state.pollTimer);
         state.pollTimer = setInterval(async () => {
           await syncFetchFromCloud();
@@ -743,6 +800,7 @@
 
       // ====== Navigation & Modal Logic ======
       el.logoutBtn.addEventListener("click", () => {
+        stopCameraHardware();
         clearInterval(state.pollTimer);
         localStorage.removeItem(SESSION_KEY);
         state.session = null;
@@ -786,6 +844,7 @@
 
       // Create Group Chat or Direct Message Dialogues
       el.createChatBtn.addEventListener("click", async () => {
+        if (!state.session) return;
         el.modalError.classList.add("hidden");
         const entryValue = el.newChatUsername.value.trim();
 
@@ -870,6 +929,7 @@
       });
 
       function renderChatSidebarList() {
+        if (!state.session) return;
         el.chatList.innerHTML = "";
         const activeRooms = Object.values(state.record.chats).sort((a,b) => new Date(b.updatedAt) - new Date(a.updatedAt));
 
@@ -933,6 +993,7 @@
       }
 
       async function markChatAsSeen(roomId) {
+        if (!state.session) return;
         const chat = state.record.chats[roomId];
         if (!chat) return;
         const myName = state.session.username;
@@ -949,6 +1010,7 @@
       }
 
       function openActiveChatRoom(id) {
+        if (!state.session) return;
         state.activeChatId = id;
         el.emptyState.classList.add("hidden");
         el.cameraSection.classList.add("hidden");
@@ -983,6 +1045,7 @@
       }
 
       function updateHeaderStatus(id) {
+        if (!state.session) return;
         const targetChat = state.record.chats[id];
         if (!targetChat) return;
 
@@ -1009,6 +1072,7 @@
       });
 
       function renderChatMessages(id) {
+        if (!state.session) return;
         const targetChat = state.record.chats[id];
         if (!targetChat) return;
 
@@ -1069,7 +1133,7 @@
 
       // Transmission of instantaneous messages
       async function transmitMessagePayload(contentStr) {
-        if (!contentStr || !state.activeChatId) return;
+        if (!contentStr || !state.activeChatId || !state.session) return;
         const currentChat = state.record.chats[state.activeChatId];
         if (!currentChat) return;
 
@@ -1096,7 +1160,7 @@
 
       let typingThrottleTimer = null;
       function handleTypingIndicator() {
-        if (!state.activeChatId) return;
+        if (!state.activeChatId || !state.session) return;
         const chat = state.record.chats[state.activeChatId];
         if (!chat) return;
 
@@ -1199,20 +1263,27 @@
         try {
           const cache = localStorage.getItem(DB_KEY);
           if (cache) state.record = ensureSchema(JSON.parse(cache));
-        } catch(e){}
+        } catch(e){
+          console.error("Cache hydration failed:", e);
+        }
 
         // Initial Cloud Sync fetch operation
         await syncFetchFromCloud();
 
-        // Active active identity checks
+        // Auto-login if session exists
         try {
           const authUser = JSON.parse(localStorage.getItem(SESSION_KEY));
           if (authUser && authUser.username) {
             state.session = authUser;
-            launchApplicationShell();
+            await launchApplicationShell();
           }
-        } catch(e){}
+        } catch(e){
+          localStorage.removeItem(SESSION_KEY);
+        }
       });
+
+      // Final safety: Stop camera on window unload
+      window.addEventListener("beforeunload", stopCameraHardware);
     </script>
   </body>
-</html>
+</html>s
