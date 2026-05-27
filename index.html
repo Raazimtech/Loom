@@ -3,35 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Loom — Loom</title>
+    <title>Loom — App</title>
     <meta name="color-scheme" content="dark light" />
     <meta name="theme-color" content="#f59e0b" />
-    <meta
-      name="description"
-      content="Loom is a modern, clean, fast chat experience with a premium two‑panel layout, beautiful messaging UI, and installable web app support."
-    />
-    <meta name="robots" content="index,follow" />
-    <meta name="googlebot" content="index,follow" />
-    <meta name="author" content="Loom" />
-    <meta name="keywords" content="Loom chat, chat app, web chat, messaging app, installable web app" />
-
-    <!-- Open Graph -->
-    <meta property="og:type" content="website" />
-    <meta property="og:title" content="Loom — Messaging that looks premium" />
-    <meta
-      property="og:description"
-      content="A modern, clean, fast chat experience with a premium two‑panel layout and beautiful messaging UI."
-    />
-    <meta property="og:image" content="logo.png" />
-
-    <!-- Twitter -->
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Loom — Messaging that looks premium" />
-    <meta
-      name="twitter:description"
-      content="A modern, clean, fast chat experience with a premium two‑panel layout and beautiful messaging UI."
-    />
-    <meta name="twitter:image" content="logo.png" />
+    <meta name="description" content="Loom — a modern, clean chat app experience." />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <link rel="manifest" href="manifest.webmanifest" />
@@ -39,7 +14,6 @@
     <link rel="icon" type="image/png" sizes="16x16" href="icons/icon-16.png" />
     <link rel="apple-touch-icon" href="icons/icon-192.png" />
 
-    <!-- Tailwind CSS (CDN) -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
@@ -55,10 +29,11 @@
                 muted: "#8f9aa3",
                 brand: "#f59e0b",
                 brand2: "#fb923c",
+                bubbleOut: "#7c2d12",
+                bubbleIn: "#202c33",
               },
             },
             boxShadow: {
-              glow: "0 0 0 1px rgba(245,158,11,0.20), 0 18px 60px rgba(0,0,0,0.65)",
               soft: "0 12px 40px rgba(0,0,0,0.55)",
             },
           },
@@ -66,7 +41,6 @@
       };
     </script>
 
-    <!-- Font Awesome (CDN) -->
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
@@ -74,11 +48,13 @@
     />
 
     <style>
-      .loom-bg {
-        background: radial-gradient(1200px 700px at 20% 10%, rgba(245, 158, 11, 0.22), transparent 55%),
-          radial-gradient(900px 600px at 80% 30%, rgba(251, 146, 60, 0.14), transparent 60%),
-          linear-gradient(180deg, #071015 0%, #0b141a 70%, #071015 100%);
+      /* Subtle chat wallpaper (tiled) */
+      .loom-wallpaper {
+        background-color: #0b141a;
+        background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+        background-size: 22px 22px;
       }
+      /* Better scrollbar (works in Chromium/Edge) */
       .scrollbar::-webkit-scrollbar {
         width: 10px;
         height: 10px;
@@ -94,6 +70,7 @@
         border: 2px solid rgba(0, 0, 0, 0);
         background-clip: padding-box;
       }
+      /* Light mode palette */
       html[data-theme="light"] body {
         background: #f0f2f5;
       }
@@ -113,315 +90,1058 @@
       html[data-theme="light"] .theme-input {
         background: rgba(17, 24, 39, 0.06);
       }
+      html[data-theme="light"] .theme-bubble-in {
+        background: #ffffff;
+        color: #111827;
+      }
+      html[data-theme="light"] .theme-wallpaper {
+        background-color: #efeae2;
+        background-image: radial-gradient(rgba(17, 24, 39, 0.06) 1px, transparent 1px);
+      }
     </style>
   </head>
 
-  <body class="min-h-screen loom-bg text-loom-text antialiased">
-    <!-- Top Bar -->
-    <header class="sticky top-0 z-20 border-b border-loom-border theme-border bg-loom-panel/70 theme-panel backdrop-blur">
-      <div class="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3">
-        <a href="app.html" class="flex items-center gap-3">
-          <div class="grid h-10 w-10 place-items-center rounded-2xl bg-loom-panel shadow-glow ring-1 ring-loom-border theme-border">
-            <img
-              src="logo.png"
-              alt="Loom"
-              class="h-6 w-6 object-contain drop-shadow-[0_10px_26px_rgba(245,158,11,0.40)]"
-            />
+  <body class="h-dvh bg-loom-bg text-loom-text antialiased">
+    <div id="authScreen" class="min-h-dvh">
+      <div class="mx-auto flex min-h-dvh max-w-6xl items-center justify-center px-4 py-10">
+        <section class="w-full max-w-md">
+          <div class="mb-6 flex items-center justify-center gap-3">
+            <div class="grid h-12 w-12 place-items-center rounded-2xl bg-loom-panel shadow-soft ring-1 ring-loom-border">
+              <span class="text-loom-brand text-xl font-bold"><i class="fa-solid fa-comments"></i></span>
+            </div>
+            <div class="leading-tight">
+              <h1 class="text-2xl font-semibold">Loom</h1>
+              <p class="text-sm text-loom-muted theme-muted">Welcome. Sign in to continue.</p>
+            </div>
           </div>
-          <div class="leading-tight">
-            <p class="font-semibold theme-ink">Loom</p>
-            <p class="text-xs text-loom-muted theme-muted">A clean, modern chat UI</p>
-          </div>
-        </a>
 
-        <div class="flex items-center gap-2">
-          <button
-            id="themeBtn"
-            class="h-10 w-10 grid place-items-center rounded-xl bg-white/5 ring-1 ring-loom-border theme-border hover:bg-white/10 transition"
-            title="Toggle theme"
-            type="button"
+          <div class="rounded-2xl bg-loom-panel/90 p-6 shadow-soft ring-1 ring-loom-border backdrop-blur">
+            <div class="flex items-center justify-between gap-3">
+              <div>
+                <h2 id="authTitle" class="text-xl font-semibold">Welcome back</h2>
+                <p id="authSubtitle" class="mt-1 text-sm text-loom-muted theme-muted">Log in to your account</p>
+              </div>
+              <button
+                id="authToggleBtn"
+                class="rounded-xl bg-white/5 px-3 py-2 text-sm font-medium text-loom-text ring-1 ring-loom-border transition hover:bg-white/10"
+                type="button"
+              >
+                <i class="fa-solid fa-right-left mr-2 opacity-80"></i><span id="authToggleText">Register</span>
+              </button>
+            </div>
+
+            <div class="mt-5 space-y-4">
+              <div>
+                <label class="text-sm text-loom-muted theme-muted" for="authUsername">Username</label>
+                <div class="mt-1 flex items-center gap-2 rounded-xl bg-black/20 theme-input px-3 ring-1 ring-loom-border focus-within:ring-loom-brand/60">
+                  <i class="fa-solid fa-user text-loom-muted theme-muted"></i>
+                  <input
+                    id="authUsername"
+                    class="w-full bg-transparent py-3 text-sm outline-none placeholder:text-loom-muted/60 theme-muted text-white"
+                    placeholder="e.g. Amina"
+                    autocomplete="username"
+                  />
+                </div>
+              </div>
+
+              <div id="authAvatarRow" class="hidden">
+                <label class="text-sm text-loom-muted theme-muted" for="authAvatarUrl">Profile picture URL <span class="text-xs">(optional)</span></label>
+                <div class="mt-1 flex items-center gap-2 rounded-xl bg-black/20 theme-input px-3 ring-1 ring-loom-border focus-within:ring-loom-brand/60">
+                  <i class="fa-regular fa-image text-loom-muted theme-muted"></i>
+                  <input
+                    id="authAvatarUrl"
+                    class="w-full bg-transparent py-3 text-sm outline-none placeholder:text-loom-muted/60 theme-muted text-white"
+                    placeholder="https://…"
+                    autocomplete="url"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label class="text-sm text-loom-muted theme-muted" for="authPassword">Password</label>
+                <div class="mt-1 flex items-center gap-2 rounded-xl bg-black/20 theme-input px-3 ring-1 ring-loom-border focus-within:ring-loom-brand/60">
+                  <i class="fa-solid fa-key text-loom-muted theme-muted"></i>
+                  <input
+                    id="authPassword"
+                    type="password"
+                    class="w-full bg-transparent py-3 text-sm outline-none placeholder:text-loom-muted/60 theme-muted text-white"
+                    placeholder="••••••••"
+                    autocomplete="current-password"
+                  />
+                  <button id="authPwBtn" type="button" class="py-2 text-loom-muted hover:text-loom-text" aria-label="Show/hide password">
+                    <i class="fa-regular fa-eye"></i>
+                  </button>
+                </div>
+              </div>
+
+              <button
+                id="authSubmitBtn"
+                class="group relative w-full overflow-hidden rounded-xl bg-loom-brand px-4 py-3 text-sm font-semibold text-black transition hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-loom-brand/60"
+                type="button"
+              >
+                <span class="inline-flex items-center justify-center gap-2">
+                  <span id="authSubmitText">Log in</span>
+                  <i class="fa-solid fa-arrow-right transition group-hover:translate-x-0.5"></i>
+                </span>
+              </button>
+
+              <div id="authAlert" class="hidden rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-200"></div>
+            </div>
+
+            <div class="mt-6 flex items-center justify-between text-xs text-loom-muted theme-muted">
+              <span>© <span id="authYear"></span> Loom</span>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <div id="appShell" class="hidden mx-auto h-dvh max-w-[1400px] px-0 md:px-4 md:py-4">
+      <div class="theme-panel h-full md:h-[calc(100dvh-2rem)] md:rounded-2xl bg-loom-panel ring-1 ring-loom-border shadow-soft overflow-hidden">
+        <div class="flex h-full">
+          <aside
+            id="sidebar"
+            class="w-full md:w-[35%] md:min-w-[340px] md:max-w-[480px] border-r border-loom-border theme-border flex flex-col"
           >
-            <i class="fa-solid fa-moon"></i>
+            <div class="flex items-center justify-between gap-3 px-4 py-3 bg-loom-panel2 theme-panel border-b border-loom-border theme-border">
+              <div class="flex items-center gap-3 min-w-0">
+                <img id="meAvatar" alt="You" class="h-10 w-10 rounded-full ring-1 ring-white/10 object-cover" />
+                <div class="min-w-0">
+                  <div class="flex items-center gap-2 min-w-0">
+                    <p id="meName" class="truncate font-semibold theme-ink"></p>
+                    <span
+                      class="inline-flex items-center gap-1 rounded-full bg-white/5 px-2 py-1 text-[11px] text-loom-muted theme-muted ring-1 ring-loom-border theme-border"
+                      title="Session status"
+                    >
+                      <span class="h-1.5 w-1.5 rounded-full bg-loom-brand"></span>
+                      Online
+                    </span>
+                  </div>
+                  <p id="meHint" class="truncate text-xs text-loom-muted theme-muted">Connected to Cloud</p>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-2">
+                <button
+                  id="themeBtn"
+                  class="h-10 w-10 grid place-items-center rounded-xl bg-white/5 ring-1 ring-loom-border theme-border hover:bg-white/10 transition"
+                  title="Toggle dark/light"
+                  type="button"
+                >
+                  <i class="fa-solid fa-moon"></i>
+                </button>
+                <button
+                  id="cameraBtn"
+                  class="h-10 w-10 grid place-items-center rounded-xl bg-white/5 ring-1 ring-loom-border theme-border hover:bg-white/10 transition"
+                  title="Camera"
+                  type="button"
+                >
+                  <i class="fa-solid fa-camera"></i>
+                </button>
+                <button
+                  id="newChatBtn"
+                  class="h-10 w-10 grid place-items-center rounded-xl bg-white/5 ring-1 ring-loom-border theme-border hover:bg-white/10 transition"
+                  title="Create Chat or Group"
+                  type="button"
+                >
+                  <i class="fa-solid fa-user-plus"></i>
+                </button>
+                <button
+                  id="logoutBtn"
+                  class="h-10 w-10 grid place-items-center rounded-xl bg-white/5 ring-1 ring-loom-border theme-border hover:bg-white/10 transition"
+                  title="Logout"
+                  type="button"
+                >
+                  <i class="fa-solid fa-right-from-bracket"></i>
+                </button>
+              </div>
+            </div>
+
+            <div class="sticky top-0 z-10 bg-loom-panel theme-panel border-b border-loom-border theme-border px-4 py-3">
+              <div class="flex items-center gap-2 rounded-xl bg-black/20 theme-input px-3 ring-1 ring-loom-border theme-border focus-within:ring-loom-brand/60">
+                <i class="fa-solid fa-magnifying-glass text-loom-muted theme-muted"></i>
+                <input
+                  id="searchInput"
+                  class="w-full bg-transparent py-2.5 text-sm outline-none placeholder:text-loom-muted/60 theme-muted"
+                  placeholder="Search chats or groups"
+                  autocomplete="off"
+                />
+              </div>
+            </div>
+
+            <div id="chatList" class="scrollbar flex-1 overflow-y-auto"></div>
+
+            <div class="border-t border-loom-border theme-border px-4 py-3 text-xs text-loom-muted theme-muted flex justify-between items-center">
+              <div class="flex items-center gap-2">
+                <span id="syncDot" class="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                <span id="syncStatus">Sync: cloud connecting...</span>
+              </div>
+              <span class="text-[10px] opacity-50">Bin Mode</span>
+            </div>
+          </aside>
+
+          <section id="chatArea" class="relative hidden md:flex flex-1 flex-col bg-loom-bg">
+            <div id="emptyState" class="flex-1 loom-wallpaper theme-wallpaper grid place-items-center px-6">
+              <div class="max-w-md text-center">
+                <div class="mx-auto mb-4 grid h-16 w-16 place-items-center rounded-2xl bg-white/5 ring-1 ring-loom-border theme-border">
+                  <span class="text-loom-brand text-2xl"><i class="fa-solid fa-comments"></i></span>
+                </div>
+                <h2 class="text-2xl font-semibold theme-ink">Loom Cloud Web</h2>
+                <p class="mt-2 text-sm text-loom-muted theme-muted">Select a dialogue or group chat to begin messaging safely.</p>
+              </div>
+            </div>
+
+            <div id="cameraSection" class="hidden flex-1 loom-wallpaper theme-wallpaper px-4 py-4 overflow-y-auto">
+              <div class="mx-auto w-full max-w-3xl">
+                <div class="rounded-2xl bg-loom-panel/70 theme-panel ring-1 ring-loom-border theme-border shadow-soft overflow-hidden">
+                  <div class="flex items-center justify-between gap-3 border-b border-loom-border theme-border px-5 py-4">
+                    <div class="min-w-0">
+                      <p class="font-semibold theme-ink">Camera</p>
+                      <p class="text-xs text-loom-muted theme-muted">Capture a quick snapshot</p>
+                    </div>
+                    <button id="closeCameraBtn" class="h-10 w-10 grid place-items-center rounded-xl bg-white/5 ring-1 ring-loom-border theme-border hover:bg-white/10 transition" type="button">
+                      <i class="fa-solid fa-xmark"></i>
+                    </button>
+                  </div>
+                  <div class="p-5 grid gap-4 lg:grid-cols-2">
+                    <div class="rounded-2xl bg-black/30 ring-1 ring-loom-border theme-border overflow-hidden relative">
+                      <video id="camVideo" class="h-64 w-full object-cover" playsinline autoplay muted></video>
+                    </div>
+                    <div class="space-y-3">
+                      <button id="startCamBtn" class="w-full rounded-xl bg-loom-brand px-4 py-2.5 text-sm font-semibold text-black hover:brightness-110 transition" type="button">Start Camera</button>
+                      <button id="snapBtn" class="w-full rounded-xl bg-white/5 px-4 py-2.5 text-sm font-semibold ring-1 ring-loom-border theme-border hover:bg-white/10 transition" type="button">Snap & Transmit Photo</button>
+                      <button id="stopCamBtn" class="w-full rounded-xl bg-red-500/20 text-red-200 px-4 py-2.5 text-sm font-semibold transition hover:bg-red-500/30" type="button">Turn Off Camera</button>
+                      <canvas id="camCanvas" class="hidden"></canvas>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <header id="chatHeader" class="hidden items-center justify-between gap-3 px-4 py-3 bg-loom-panel2 theme-panel border-b border-loom-border theme-border">
+              <div class="flex items-center gap-3 min-w-0">
+                <button id="backBtn" class="md:hidden h-10 w-10 grid place-items-center rounded-xl bg-white/5 ring-1 ring-loom-border theme-border hover:bg-white/10 transition" type="button">
+                  <i class="fa-solid fa-arrow-left"></i>
+                </button>
+                <div id="peerAvatarContainer">
+                  <img id="peerAvatar" alt="Contact" class="h-10 w-10 rounded-full ring-1 ring-white/10 object-cover" />
+                </div>
+                <div class="min-w-0">
+                  <p id="peerName" class="truncate font-semibold theme-ink"></p>
+                  <p id="peerStatus" class="truncate text-xs text-loom-muted theme-muted">—</p>
+                </div>
+              </div>
+            </header>
+
+            <div id="messages" class="hidden flex-1 loom-wallpaper theme-wallpaper scrollbar overflow-y-auto px-4 py-4 space-y-3"></div>
+
+            <div id="composer" class="hidden border-t border-loom-border theme-border bg-loom-panel2 theme-panel px-3 py-3">
+              <div class="flex items-end gap-2">
+                <div class="flex-1 rounded-2xl bg-black/20 theme-input ring-1 ring-loom-border theme-border focus-within:ring-loom-brand/60 px-3">
+                  <textarea
+                    id="messageInput"
+                    rows="1"
+                    class="scrollbar w-full resize-none bg-transparent py-3 text-sm outline-none placeholder:text-loom-muted/60 theme-muted text-white"
+                    placeholder="Type a message"
+                  ></textarea>
+                </div>
+                <button
+                  id="sendBtn"
+                  class="h-11 w-11 grid place-items-center rounded-xl bg-loom-brand text-black hover:brightness-110 transition focus:outline-none focus:ring-2 focus:ring-loom-brand/60"
+                  type="button"
+                >
+                  <i class="fa-solid fa-paper-plane"></i>
+                </button>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+
+    <div id="modalOverlay" class="fixed inset-0 hidden items-center justify-center bg-black/60 z-50 px-4">
+      <div class="w-full max-w-md rounded-2xl bg-loom-panel theme-panel ring-1 ring-loom-border theme-border shadow-soft overflow-hidden">
+        <div class="flex items-center justify-between border-b border-loom-border theme-border px-5 py-4">
+          <div>
+            <h3 id="modalMainTitle" class="font-semibold theme-ink">Create Chat / Group</h3>
+            <p class="text-xs text-loom-muted theme-muted">Start a dialogue or create a group room</p>
+          </div>
+          <button id="closeModalBtn" class="h-10 w-10 grid place-items-center rounded-xl bg-white/5 ring-1 ring-loom-border theme-border hover:bg-white/10 transition" type="button">
+            <i class="fa-solid fa-xmark"></i>
           </button>
-          <button
-            id="downloadBtnTop"
-            class="rounded-xl bg-loom-brand px-4 py-2 text-sm font-semibold text-black hover:brightness-110 transition"
-            type="button"
-          >
-            Download app
+        </div>
+        <div class="p-5 space-y-4">
+          <div class="flex gap-2 p-1 bg-black/20 rounded-xl ring-1 ring-loom-border">
+            <button id="modeDirectBtn" type="button" class="flex-1 py-1.5 text-xs font-medium rounded-lg bg-loom-brand text-black transition">Direct Friend</button>
+            <button id="modeGroupBtn" type="button" class="flex-1 py-1.5 text-xs font-medium rounded-lg text-loom-muted hover:text-white transition">Group Chat</button>
+          </div>
+
+          <div>
+            <label id="modalInputLabel" class="text-xs text-loom-muted theme-muted block mb-1" for="newChatUsername">Friend's Username</label>
+            <div class="flex items-center gap-2 rounded-xl bg-black/20 theme-input px-3 ring-1 ring-loom-border focus-within:ring-loom-brand/60">
+              <i id="modalInputIcon" class="fa-solid fa-user text-loom-muted theme-muted"></i>
+              <input
+                id="newChatUsername"
+                class="w-full bg-transparent py-3 text-sm outline-none placeholder:text-loom-muted/60 theme-muted text-white"
+                placeholder="Search matching username..."
+                autocomplete="off"
+              />
+            </div>
+          </div>
+
+          <div id="groupParticipantsSection" class="hidden space-y-1">
+            <label class="text-xs text-loom-muted theme-muted block">Group Members (comma separated usernames)</label>
+            <div class="flex items-center gap-2 rounded-xl bg-black/20 theme-input px-3 ring-1 ring-loom-border">
+              <i class="fa-solid fa-users-line text-loom-muted"></i>
+              <input
+                id="groupParticipantsInput"
+                class="w-full bg-transparent py-3 text-sm outline-none text-white placeholder:text-loom-muted/40"
+                placeholder="e.g. Amina, John, Bob"
+              />
+            </div>
+          </div>
+
+          <div id="modalError" class="hidden rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-200"></div>
+        </div>
+        <div class="flex items-center justify-end gap-2 border-t border-loom-border theme-border px-5 py-4 bg-loom-panel2">
+          <button id="cancelModalBtn" class="rounded-xl bg-white/5 px-4 py-2 text-sm font-medium ring-1 ring-loom-border theme-border hover:bg-white/10 transition" type="button">Cancel</button>
+          <button id="createChatBtn" class="rounded-xl bg-loom-brand px-4 py-2 text-sm font-semibold text-black hover:brightness-110 transition" type="button">Establish</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="toast" class="pointer-events-none fixed bottom-4 left-1/2 hidden w-[min(520px,calc(100%-2rem))] -translate-x-1/2 z-50">
+      <div class="pointer-events-auto rounded-2xl bg-black/90 backdrop-blur px-4 py-3 ring-1 ring-white/10 text-sm text-loom-text shadow-soft">
+        <div class="flex items-start gap-3">
+          <div id="toastIcon" class="mt-0.5 text-loom-brand"><i class="fa-solid fa-circle-info"></i></div>
+          <div class="min-w-0 flex-1">
+            <p id="toastTitle" class="font-semibold">Notice</p>
+            <p id="toastMsg" class="mt-0.5 text-loom-muted theme-muted">—</p>
+          </div>
+          <button id="toastClose" class="h-7 w-7 grid place-items-center rounded-lg bg-white/5 hover:bg-white/10" type="button">
+            <i class="fa-solid fa-xmark"></i>
           </button>
         </div>
       </div>
-    </header>
-
-    <main class="mx-auto max-w-6xl px-4 py-10">
-      <script type="application/ld+json">
-        {
-          "@context": "https://schema.org",
-          "@type": "SoftwareApplication",
-          "name": "Loom",
-          "applicationCategory": "CommunicationApplication",
-          "operatingSystem": "Web",
-          "description": "A modern, clean, fast chat experience with a premium two-panel layout and beautiful messaging UI.",
-          "softwareVersion": "1.0",
-          "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
-        }
-      </script>
-      <!-- Hero -->
-      <section class="grid gap-8 lg:grid-cols-2 lg:items-center">
-        <div>
-          <div class="inline-flex items-center gap-2 rounded-full bg-white/5 px-3 py-1.5 text-xs text-loom-muted theme-muted ring-1 ring-loom-border theme-border">
-            <span class="h-2 w-2 rounded-full bg-loom-brand"></span>
-            <span>Fast · clean · private</span>
-          </div>
-          <h1 class="mt-4 text-4xl font-semibold tracking-tight theme-ink">Messaging that looks premium.</h1>
-          <p class="mt-3 text-base text-loom-muted theme-muted">
-            Loom is a polished, responsive web chat experience with a familiar two-panel layout, modern micro-interactions, and an orange-tinted dark mode.
-          </p>
-
-          <div class="mt-6 flex flex-wrap items-center gap-3">
-            <a href="app.html" class="rounded-xl bg-loom-brand px-5 py-3 text-sm font-semibold text-black hover:brightness-110 transition">Get started</a>
-            <a
-              href="app.html"
-              class="rounded-xl bg-white/5 px-5 py-3 text-sm font-semibold ring-1 ring-loom-border theme-border hover:bg-white/10 transition"
-            >
-              Go to chats
-            </a>
-            <button
-              id="downloadBtn"
-              type="button"
-              class="rounded-xl bg-white/5 px-5 py-3 text-sm font-semibold ring-1 ring-loom-border theme-border hover:bg-white/10 transition"
-            >
-              Download app
-            </button>
-          </div>
-
-          <div class="mt-8 grid grid-cols-2 gap-3">
-            <div class="rounded-2xl bg-loom-panel/70 theme-panel ring-1 ring-loom-border theme-border p-4 shadow-soft">
-              <p class="text-xs text-loom-muted theme-muted">Designed for</p>
-              <p class="mt-1 font-semibold theme-ink">Speed + Clarity</p>
-            </div>
-            <div class="rounded-2xl bg-loom-panel/70 theme-panel ring-1 ring-loom-border theme-border p-4 shadow-soft">
-              <p class="text-xs text-loom-muted theme-muted">Made for</p>
-              <p class="mt-1 font-semibold theme-ink">Everyday messaging</p>
-            </div>
-          </div>
-        </div>
-
-        <div class="rounded-3xl bg-loom-panel/70 theme-panel ring-1 ring-loom-border theme-border shadow-soft overflow-hidden">
-          <div class="border-b border-loom-border theme-border px-5 py-4 flex items-center justify-between">
-            <div class="flex items-center gap-2 text-sm font-semibold theme-ink">
-              <i class="fa-solid fa-sparkles text-loom-brand"></i>
-              <span>Preview</span>
-            </div>
-            <div class="text-xs text-loom-muted theme-muted">A quick look inside Loom</div>
-          </div>
-          <div id="gallery" class="scrollbar grid grid-cols-1 sm:grid-cols-2 gap-3 p-5 max-h-[420px] overflow-y-auto"></div>
-        </div>
-      </section>
-
-      <!-- Features -->
-      <section class="mt-12">
-        <h2 class="text-2xl font-semibold theme-ink">What Loom does</h2>
-        <p class="mt-2 text-sm text-loom-muted theme-muted">A clean chat experience with the essentials for everyday conversations.</p>
-
-        <div class="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          <div class="rounded-2xl bg-loom-panel/70 theme-panel ring-1 ring-loom-border theme-border p-5 shadow-soft">
-            <div class="flex items-center gap-3">
-              <div class="grid h-11 w-11 place-items-center rounded-2xl bg-white/5 ring-1 ring-loom-border theme-border">
-                <i class="fa-solid fa-user-lock text-loom-brand"></i>
-              </div>
-              <div>
-                <p class="font-semibold theme-ink">Accounts</p>
-                <p class="text-xs text-loom-muted theme-muted">Register and log in with username + password.</p>
-              </div>
-            </div>
-          </div>
-          <div class="rounded-2xl bg-loom-panel/70 theme-panel ring-1 ring-loom-border theme-border p-5 shadow-soft">
-            <div class="flex items-center gap-3">
-              <div class="grid h-11 w-11 place-items-center rounded-2xl bg-white/5 ring-1 ring-loom-border theme-border">
-                <i class="fa-solid fa-layer-group text-loom-brand"></i>
-              </div>
-              <div>
-                <p class="font-semibold theme-ink">Two-panel layout</p>
-                <p class="text-xs text-loom-muted theme-muted">Sidebar chats + focused conversation view.</p>
-              </div>
-            </div>
-          </div>
-          <div class="rounded-2xl bg-loom-panel/70 theme-panel ring-1 ring-loom-border theme-border p-5 shadow-soft">
-            <div class="flex items-center gap-3">
-              <div class="grid h-11 w-11 place-items-center rounded-2xl bg-white/5 ring-1 ring-loom-border theme-border">
-                <i class="fa-solid fa-magnifying-glass text-loom-brand"></i>
-              </div>
-              <div>
-                <p class="font-semibold theme-ink">Search</p>
-                <p class="text-xs text-loom-muted theme-muted">Filter chats quickly by contact name.</p>
-              </div>
-            </div>
-          </div>
-          <div class="rounded-2xl bg-loom-panel/70 theme-panel ring-1 ring-loom-border theme-border p-5 shadow-soft">
-            <div class="flex items-center gap-3">
-              <div class="grid h-11 w-11 place-items-center rounded-2xl bg-white/5 ring-1 ring-loom-border theme-border">
-                <i class="fa-solid fa-bolt text-loom-brand"></i>
-              </div>
-              <div>
-                <p class="font-semibold theme-ink">Instant sending</p>
-                <p class="text-xs text-loom-muted theme-muted">Optimistic UI: messages appear immediately.</p>
-              </div>
-            </div>
-          </div>
-          <div class="rounded-2xl bg-loom-panel/70 theme-panel ring-1 ring-loom-border theme-border p-5 shadow-soft">
-            <div class="flex items-center gap-3">
-              <div class="grid h-11 w-11 place-items-center rounded-2xl bg-white/5 ring-1 ring-loom-border theme-border">
-                <i class="fa-solid fa-palette text-loom-brand"></i>
-              </div>
-              <div>
-                <p class="font-semibold theme-ink">Themes</p>
-                <p class="text-xs text-loom-muted theme-muted">Orange-tinted dark mode + optional light mode.</p>
-              </div>
-            </div>
-          </div>
-          <div class="rounded-2xl bg-loom-panel/70 theme-panel ring-1 ring-loom-border theme-border p-5 shadow-soft">
-            <div class="flex items-center gap-3">
-              <div class="grid h-11 w-11 place-items-center rounded-2xl bg-white/5 ring-1 ring-loom-border theme-border">
-                <i class="fa-solid fa-download text-loom-brand"></i>
-              </div>
-              <div>
-                <p class="font-semibold theme-ink">Installable</p>
-                <p class="text-xs text-loom-muted theme-muted">Works as an app when installed from the browser.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Footer -->
-      <footer class="mt-12 border-t border-loom-border theme-border pt-6 text-sm text-loom-muted theme-muted">
-        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <p>© <span id="year"></span> Loom</p>
-          <div class="flex items-center gap-3">
-            <a href="app.html" class="hover:text-loom-text theme-ink">Chats</a>
-          </div>
-        </div>
-      </footer>
-    </main>
+    </div>
 
     <script>
-      const THEME_KEY = "loom.theme.v1";
-      const themeBtn = document.getElementById("themeBtn");
-      const year = document.getElementById("year");
-      const gallery = document.getElementById("gallery");
-      const downloadBtn = document.getElementById("downloadBtn");
-      const downloadBtnTop = document.getElementById("downloadBtnTop");
+      /******************************************************************
+       * Loom — Connected Bin & Real-Time Sync Framework
+       ******************************************************************/
 
-      function getTheme() {
-        return localStorage.getItem(THEME_KEY) || "dark";
-      }
-      function setTheme(theme) {
-        localStorage.setItem(THEME_KEY, theme);
-        document.documentElement.setAttribute("data-theme", theme);
-        themeBtn.innerHTML = theme === "light" ? '<i class="fa-solid fa-sun"></i>' : '<i class="fa-solid fa-moon"></i>';
-      }
-      function toggleTheme() {
-        setTheme(getTheme() === "dark" ? "light" : "dark");
+      // ====== Cloud Configuration Keys ======
+      const BIN_ID = "6a1665c8f47d5c455c3b94af";
+      const X_ACCESS_KEY = "$2a$10$tXgvvVb2ZtKHc/eUZvVguOfP489uh9uViUTdxv.JxAGBy/VIcqZnS";
+      const X_MASTER_KEY = "$2a$10$XDKbJJajqyGNm9ZsoEkXueGbfMG7OteKGLwJJ7BtI8mv1/PEJTLta";
+      const BIN_ENDPOINT = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
+
+      const SESSION_KEY = "loom.session.v2";
+      const THEME_KEY = "loom.theme.v2";
+      const DB_KEY = "loom.db.v2";
+      const POLL_EVERY_MS = 1500; // Fast response interval loops
+      const DEFAULT_AVATAR = "https://api.dicebear.com/7.x/bottts-neutral/svg?seed=Loom";
+
+      // ====== DOM Selectors ======
+      const el = {
+        authScreen: document.getElementById("authScreen"),
+        appShell: document.getElementById("appShell"),
+        authTitle: document.getElementById("authTitle"),
+        authSubtitle: document.getElementById("authSubtitle"),
+        authToggleBtn: document.getElementById("authToggleBtn"),
+        authToggleText: document.getElementById("authToggleText"),
+        authUsername: document.getElementById("authUsername"),
+        authAvatarRow: document.getElementById("authAvatarRow"),
+        authAvatarUrl: document.getElementById("authAvatarUrl"),
+        authPassword: document.getElementById("authPassword"),
+        authPwBtn: document.getElementById("authPwBtn"),
+        authSubmitBtn: document.getElementById("authSubmitBtn"),
+        authSubmitText: document.getElementById("authSubmitText"),
+        authAlert: document.getElementById("authAlert"),
+        authYear: document.getElementById("authYear"),
+        sidebar: document.getElementById("sidebar"),
+        chatArea: document.getElementById("chatArea"),
+        emptyState: document.getElementById("emptyState"),
+        chatHeader: document.getElementById("chatHeader"),
+        backBtn: document.getElementById("backBtn"),
+        messages: document.getElementById("messages"),
+        composer: document.getElementById("composer"),
+        messageInput: document.getElementById("messageInput"),
+        sendBtn: document.getElementById("sendBtn"),
+        chatList: document.getElementById("chatList"),
+        searchInput: document.getElementById("searchInput"),
+        meAvatar: document.getElementById("meAvatar"),
+        meName: document.getElementById("meName"),
+        meHint: document.getElementById("meHint"),
+        peerAvatar: document.getElementById("peerAvatar"),
+        peerName: document.getElementById("peerName"),
+        peerStatus: document.getElementById("peerStatus"),
+        logoutBtn: document.getElementById("logoutBtn"),
+        newChatBtn: document.getElementById("newChatBtn"),
+        themeBtn: document.getElementById("themeBtn"),
+        cameraBtn: document.getElementById("cameraBtn"),
+        syncStatus: document.getElementById("syncStatus"),
+        syncDot: document.getElementById("syncDot"),
+        cameraSection: document.getElementById("cameraSection"),
+        closeCameraBtn: document.getElementById("closeCameraBtn"),
+        camVideo: document.getElementById("camVideo"),
+        camCanvas: document.getElementById("camCanvas"),
+        startCamBtn: document.getElementById("startCamBtn"),
+        stopCamBtn: document.getElementById("stopCamBtn"),
+        snapBtn: document.getElementById("snapBtn"),
+        modalOverlay: document.getElementById("modalOverlay"),
+        closeModalBtn: document.getElementById("closeModalBtn"),
+        cancelModalBtn: document.getElementById("cancelModalBtn"),
+        createChatBtn: document.getElementById("createChatBtn"),
+        newChatUsername: document.getElementById("newChatUsername"),
+        groupParticipantsSection: document.getElementById("groupParticipantsSection"),
+        groupParticipantsInput: document.getElementById("groupParticipantsInput"),
+        modeDirectBtn: document.getElementById("modeDirectBtn"),
+        modeGroupBtn: document.getElementById("modeGroupBtn"),
+        modalInputLabel: document.getElementById("modalInputLabel"),
+        modalInputIcon: document.getElementById("modalInputIcon"),
+        modalError: document.getElementById("modalError"),
+        toast: document.getElementById("toast"),
+        toastIcon: document.getElementById("toastIcon"),
+        toastTitle: document.getElementById("toastTitle"),
+        toastMsg: document.getElementById("toastMsg"),
+        toastClose: document.getElementById("toastClose"),
+      };
+
+      // ====== Application State ======
+      const state = {
+        isRegistering: false,
+        modalGroupMode: false,
+        session: null,
+        record: { users: [], chats: {} },
+        activeChatId: null,
+        searchQuery: "",
+        pollTimer: null,
+        stream: null,
+      };
+
+      // Set correct year
+      if (el.authYear) el.authYear.textContent = new Date().getFullYear();
+
+      // ====== Security Hash Function ======
+      async function sha256(text) {
+        const enc = new TextEncoder();
+        const buf = await crypto.subtle.digest("SHA-256", enc.encode(text));
+        return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, "0")).join("");
       }
 
-      function card(html) {
-        const div = document.createElement("div");
-        div.className =
-          "relative aspect-[4/3] overflow-hidden rounded-2xl ring-1 ring-loom-border theme-border bg-black/20 theme-input shadow-soft";
-        div.innerHTML = html;
-        return div;
-      }
-
-      function addPlaceholder(label) {
-        gallery.appendChild(
-          card(`
-            <div class="h-full w-full grid place-items-center p-4">
-              <div class="text-center">
-                <img src="logo.png" alt="Loom" class="mx-auto h-10 w-10 object-contain opacity-90" />
-                <p class="mt-2 text-sm font-semibold">Add ${label}</p>
-                <p class="mt-1 text-xs text-loom-muted theme-muted">Place your image file in this folder.</p>
-              </div>
-            </div>
-          `)
-        );
-      }
-
-      function tryLoadImage(baseName, exts) {
-        return new Promise((resolve) => {
-          const img = new Image();
-          let i = 0;
-          function next() {
-            if (i >= exts.length) return resolve(null);
-            img.src = `${baseName}.${exts[i++]}`;
-          }
-          img.onload = () => resolve(img.src);
-          img.onerror = () => next();
-          next();
+      function ensureSchema(obj) {
+        const record = obj && typeof obj === "object" ? obj : {};
+        if (!Array.isArray(record.users)) record.users = [];
+        if (!record.chats || typeof record.chats !== "object") record.chats = {};
+        Object.values(record.chats).forEach(chat => {
+          if (!chat.lastSeen) chat.lastSeen = {};
         });
+        return record;
       }
 
-      async function buildGallery() {
-        const exts = ["png", "jpg", "jpeg", "webp", "svg"];
-        const names = ["des1", "des2", "des3", "des4", "des5", "des6"];
-        const results = await Promise.all(names.map((n) => tryLoadImage(n, exts)));
+      function safeAvatar(url) {
+        return (url || "").trim() ? url.trim() : DEFAULT_AVATAR;
+      }
 
-        let any = false;
-        results.forEach((src, idx) => {
-          if (!src) return;
-          any = true;
-          gallery.appendChild(
-            card(`
-              <img src="${src}" alt="${names[idx]}" class="h-full w-full object-cover" />
-              <div class="absolute inset-0 bg-gradient-to-t from-black/35 to-transparent"></div>
-              <div class="absolute bottom-2 left-2 right-2 text-[11px] text-white/85">${names[idx]}</div>
-            `)
-          );
-        });
-
-        if (!any) {
-          addPlaceholder("des1.png");
-          addPlaceholder("des2.png");
-          addPlaceholder("des3.png");
-          addPlaceholder("des4.png");
+      function updateSyncUI(text, dotColorClass, isPulse = false) {
+        if (el.syncStatus) el.syncStatus.textContent = text;
+        if (el.syncDot) {
+          el.syncDot.className = `h-1.5 w-1.5 rounded-full ${dotColorClass} ${isPulse ? 'animate-pulse' : ''}`;
         }
       }
 
-      year.textContent = String(new Date().getFullYear());
-      setTheme(getTheme());
-      themeBtn.addEventListener("click", toggleTheme);
-      buildGallery();
-
-      // PWA wiring (install + offline). Requires HTTPS (or localhost).
-      window.__loomInstallPrompt = null;
-
-      if ("serviceWorker" in navigator && window.isSecureContext) {
-        navigator.serviceWorker.register("./sw.js").catch(() => {});
+      // ====== Cloud Persistence Layers ======
+      async function syncFetchFromCloud() {
+        try {
+          const response = await fetch(`${BIN_ENDPOINT}/latest`, {
+            method: "GET",
+            headers: { 
+              "X-Master-Key": X_MASTER_KEY,
+              "X-Access-Key": X_ACCESS_KEY
+            }
+          });
+          if (!response.ok) throw new Error("Database fetch error");
+          const wrapper = await response.json();
+          
+          // Smart deep merge to retain real-time incoming messages without overriding state variables
+          mergeCloudRecords(wrapper.record);
+          updateSyncUI("Sync: Live Connected", "bg-green-500");
+        } catch (err) {
+          console.error(err);
+          updateSyncUI("Sync: Connection Offline", "bg-red-500");
+        }
       }
 
-      window.addEventListener("beforeinstallprompt", (e) => {
-        e.preventDefault();
-        window.__loomInstallPrompt = e;
+      async function syncPushToCloud() {
+        try {
+          updateSyncUI("Sync: Updating Remote...", "bg-amber-500", true);
+          const response = await fetch(BIN_ENDPOINT, {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+              "X-Master-Key": X_MASTER_KEY,
+              "X-Access-Key": X_ACCESS_KEY,
+              "X-Bin-Versioning": "false"
+            },
+            body: JSON.stringify(state.record)
+          });
+          if (!response.ok) throw new Error("Database push error");
+          updateSyncUI("Sync: Saved Changes", "bg-green-500");
+        } catch (err) {
+          console.error(err);
+          updateSyncUI("Sync: Update Suspended", "bg-red-500");
+        }
+      }
+
+      function mergeCloudRecords(cloudRecord) {
+        const incoming = ensureSchema(cloudRecord);
+        
+        // Merge user registers
+        incoming.users.forEach(u => {
+          if (!state.record.users.some(existing => existing.username.toLowerCase() === u.username.toLowerCase())) {
+            state.record.users.push(u);
+          }
+        });
+
+        // Merge messages inside rooms cleanly matching unique signatures
+        Object.keys(incoming.chats).forEach(roomId => {
+          if (!state.record.chats[roomId]) {
+            state.record.chats[roomId] = incoming.chats[roomId];
+          } else {
+            const localMsgs = state.record.chats[roomId].messages || [];
+            const cloudMsgs = incoming.chats[roomId].messages || [];
+            
+            // Re-map unique list filtered via timestamps and author markers
+            const combined = [...localMsgs];
+            cloudMsgs.forEach(cm => {
+              if (!combined.some(lm => lm.ts === cm.ts && lm.from === cm.from)) {
+                combined.push(cm);
+              }
+            });
+            state.record.chats[roomId].messages = combined.sort((a,b) => new Date(a.ts) - new Date(b.ts));
+            state.record.chats[roomId].updatedAt = incoming.chats[roomId].updatedAt || state.record.chats[roomId].updatedAt;
+            
+            // Sync lastSeen status
+            if (!state.record.chats[roomId].lastSeen) state.record.chats[roomId].lastSeen = {};
+            if (incoming.chats[roomId].lastSeen) {
+              Object.entries(incoming.chats[roomId].lastSeen).forEach(([user, ts]) => {
+                const localTs = state.record.chats[roomId].lastSeen[user];
+                if (!localTs || new Date(ts) > new Date(localTs)) {
+                  state.record.chats[roomId].lastSeen[user] = ts;
+                }
+              });
+            }
+          }
+        });
+
+        localStorage.setItem(DB_KEY, JSON.stringify(state.record));
+      }
+
+      // ====== UI Event Handlers & View Management ======
+      function showToast(title, msg) {
+        el.toastTitle.textContent = title;
+        el.toastMsg.textContent = msg;
+        el.toast.classList.remove("hidden");
+        setTimeout(() => el.toast.classList.add("hidden"), 4000);
+      }
+
+      el.toastClose.addEventListener("click", () => el.toast.classList.add("hidden"));
+
+      // Auth toggle setup
+      el.authToggleBtn.addEventListener("click", () => {
+        state.isRegistering = !state.isRegistering;
+        el.authTitle.textContent = state.isRegistering ? "Create Account" : "Welcome back";
+        el.authSubtitle.textContent = state.isRegistering ? "Sign up for a free cloud profile" : "Log in to your account";
+        el.authSubmitText.textContent = state.isRegistering ? "Register Account" : "Log in";
+        el.authToggleText.textContent = state.isRegistering ? "Login Mode" : "Register";
+        el.authAvatarRow.classList.toggle("hidden", !state.isRegistering);
+        el.authAlert.classList.add("hidden");
       });
 
-      async function downloadApp() {
-        // If install prompt isn't available (or not HTTPS), fall back to opening the app shell.
-        if (window.isSecureContext && window.__loomInstallPrompt) {
-          try {
-            window.__loomInstallPrompt.prompt();
-            await window.__loomInstallPrompt.userChoice;
-            window.__loomInstallPrompt = null;
-            return;
-          } catch {
-            // fall back
-          }
+      // Password visibility toggler
+      el.authPwBtn.addEventListener("click", () => {
+        const isPw = el.authPassword.getAttribute("type") === "password";
+        el.authPassword.setAttribute("type", isPw ? "text" : "password");
+        el.authPwBtn.innerHTML = isPw ? `<i class="fa-regular fa-eye-slash"></i>` : `<i class="fa-regular fa-eye"></i>`;
+      });
+
+      // Account Registration and Authentication processing
+      el.authSubmitBtn.addEventListener("click", async () => {
+        el.authAlert.classList.add("hidden");
+        const username = el.authUsername.value.trim();
+        const password = el.authPassword.value.trim();
+        const avatarUrl = el.authAvatarUrl.value.trim();
+
+        if (!username || !password) {
+          el.authAlert.textContent = "Please fill in all mandatory inputs.";
+          el.authAlert.classList.remove("hidden");
+          return;
         }
-        window.location.href = "app.html";
+
+        await syncFetchFromCloud();
+        const hashedPw = await sha256(password);
+        const matchUser = state.record.users.find(u => u.username.toLowerCase() === username.toLowerCase());
+
+        if (state.isRegistering) {
+          if (matchUser) {
+            el.authAlert.textContent = "Username already claimed.";
+            el.authAlert.classList.remove("hidden");
+            return;
+          }
+          const newUser = { username, passwordHash: hashedPw, avatar: avatarUrl, createdAt: new Date().toISOString() };
+          state.record.users.push(newUser);
+          await syncPushToCloud();
+          showToast("Account Created", "You can now login successfully.");
+          el.authToggleBtn.click();
+        } else {
+          if (!matchUser || matchUser.passwordHash !== hashedPw) {
+            el.authAlert.textContent = "Invalid username or password match.";
+            el.authAlert.classList.remove("hidden");
+            return;
+          }
+          // Authenticated successfully
+          state.session = matchUser;
+          localStorage.setItem(SESSION_KEY, JSON.stringify(matchUser));
+          launchApplicationShell();
+        }
+      });
+
+      function launchApplicationShell() {
+        el.authScreen.classList.add("hidden");
+        el.appShell.classList.remove("hidden");
+        el.meAvatar.src = safeAvatar(state.session.avatar);
+        el.meName.textContent = state.session.username;
+
+        // Run automated poll daemon loop
+        startSyncDaemon();
+        renderChatSidebarList();
       }
 
-      downloadBtn?.addEventListener("click", downloadApp);
-      downloadBtnTop?.addEventListener("click", downloadApp);
+      function startSyncDaemon() {
+        if (state.pollTimer) clearInterval(state.pollTimer);
+        state.pollTimer = setInterval(async () => {
+          await syncFetchFromCloud();
+          renderChatSidebarList();
+          if (state.activeChatId) {
+            renderChatMessages(state.activeChatId);
+          }
+        }, POLL_EVERY_MS);
+      }
+
+      // ====== Navigation & Modal Logic ======
+      el.logoutBtn.addEventListener("click", () => {
+        clearInterval(state.pollTimer);
+        localStorage.removeItem(SESSION_KEY);
+        state.session = null;
+        el.appShell.classList.add("hidden");
+        el.authScreen.classList.remove("hidden");
+      });
+
+      el.newChatBtn.addEventListener("click", () => {
+        el.modalError.classList.add("hidden");
+        el.newChatUsername.value = "";
+        el.groupParticipantsInput.value = "";
+        setModalMode(false);
+        el.modalOverlay.classList.remove("hidden");
+        el.modalOverlay.classList.add("flex");
+      });
+
+      function setModalMode(isGroup) {
+        state.modalGroupMode = isGroup;
+        el.modeDirectBtn.classList.toggle("bg-loom-brand", !isGroup);
+        el.modeDirectBtn.classList.toggle("text-black", !isGroup);
+        el.modeDirectBtn.classList.toggle("text-loom-muted", isGroup);
+        
+        el.modeGroupBtn.classList.toggle("bg-loom-brand", isGroup);
+        el.modeGroupBtn.classList.toggle("text-black", isGroup);
+        el.modeGroupBtn.classList.toggle("text-loom-muted", !isGroup);
+
+        el.modalInputLabel.textContent = isGroup ? "Group Name" : "Friend's Username";
+        el.newChatUsername.placeholder = isGroup ? "e.g. Project Matrix Team" : "Search username...";
+        el.groupParticipantsSection.classList.toggle("hidden", !isGroup);
+      }
+
+      el.modeDirectBtn.addEventListener("click", () => setModalMode(false));
+      el.modeGroupBtn.addEventListener("click", () => setModalMode(true));
+
+      function closeModal() {
+        el.modalOverlay.classList.add("hidden");
+        el.modalOverlay.classList.remove("flex");
+      }
+      el.closeModalBtn.addEventListener("click", closeModal);
+      el.cancelModalBtn.addEventListener("click", closeModal);
+
+      // Create Group Chat or Direct Message Dialogues
+      el.createChatBtn.addEventListener("click", async () => {
+        el.modalError.classList.add("hidden");
+        const entryValue = el.newChatUsername.value.trim();
+
+        if (!entryValue) {
+          el.modalError.textContent = "Please input a descriptive name/title.";
+          el.modalError.classList.remove("hidden");
+          return;
+        }
+
+        if (!state.modalGroupMode) {
+          // Direct chat workflow
+          const targetUser = state.record.users.find(u => u.username.toLowerCase() === entryValue.toLowerCase());
+          if (!targetUser) {
+            el.modalError.textContent = "User not found in cloud profile logs.";
+            el.modalError.classList.remove("hidden");
+            return;
+          }
+          if (targetUser.username.toLowerCase() === state.session.username.toLowerCase()) {
+            el.modalError.textContent = "You cannot start a chat room with yourself.";
+            el.modalError.classList.remove("hidden");
+            return;
+          }
+          const sorted = [state.session.username.toLowerCase(), targetUser.username.toLowerCase()].sort();
+          const roomId = `direct__${sorted[0]}__${sorted[1]}`;
+
+          if (!state.record.chats[roomId]) {
+            state.record.chats[roomId] = {
+              id: roomId,
+              isGroup: false,
+              participants: [state.session.username, targetUser.username],
+              messages: [],
+              lastSeen: {},
+              updatedAt: new Date().toISOString()
+            };
+          }
+          state.activeChatId = roomId;
+          await syncPushToCloud();
+          closeModal();
+          openActiveChatRoom(roomId);
+        } else {
+          // Group setup architecture
+          const rawParticipants = el.groupParticipantsInput.value.split(",");
+          const validParticipants = [state.session.username];
+
+          rawParticipants.forEach(p => {
+            const clean = p.trim();
+            const found = state.record.users.find(u => u.username.toLowerCase() === clean.toLowerCase());
+            if (found && !validParticipants.includes(found.username)) {
+              validParticipants.push(found.username);
+            }
+          });
+
+          const roomId = `group__${Date.now()}`;
+          state.record.chats[roomId] = {
+            id: roomId,
+            isGroup: true,
+            groupName: entryValue,
+            participants: validParticipants,
+            lastSeen: {},
+            messages: [{
+              id: `msg__${Date.now()}`,
+              from: "System",
+              text: `${state.session.username} constructed group "${entryValue}"`,
+              ts: new Date().toISOString()
+            }],
+            updatedAt: new Date().toISOString()
+          };
+
+          state.activeChatId = roomId;
+          await syncPushToCloud();
+          closeModal();
+          openActiveChatRoom(roomId);
+        }
+      });
+
+      // ====== Sidebar and Chat Rendering Architecture ======
+      el.searchInput.addEventListener("input", (e) => {
+        state.searchQuery = e.target.value.toLowerCase();
+        renderChatSidebarList();
+      });
+
+      function renderChatSidebarList() {
+        el.chatList.innerHTML = "";
+        const activeRooms = Object.values(state.record.chats).sort((a,b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+
+        activeRooms.forEach(chat => {
+          // Verify access authorization
+          if (!chat.participants.map(p => p.toLowerCase()).includes(state.session.username.toLowerCase())) return;
+
+          let roomTitle = "";
+          let roomImage = DEFAULT_AVATAR;
+
+          if (chat.isGroup) {
+            roomTitle = chat.groupName || "Unnamed Group";
+            // Check lookup matching filter queries
+            if (state.searchQuery && !roomTitle.toLowerCase().includes(state.searchQuery)) return;
+          } else {
+            const absolutePeer = chat.participants.find(p => p.toLowerCase() !== state.session.username.toLowerCase()) || "Unknown User";
+            roomTitle = absolutePeer;
+            const peerObj = state.record.users.find(u => u.username.toLowerCase() === absolutePeer.toLowerCase());
+            if (peerObj) roomImage = safeAvatar(peerObj.avatar);
+            if (state.searchQuery && !roomTitle.toLowerCase().includes(state.searchQuery)) return;
+          }
+
+          const lastMsg = chat.messages && chat.messages.length ? chat.messages[chat.messages.length - 1].text : "No messages yet";
+          
+          const wrapperItem = document.createElement("div");
+          wrapperItem.className = `flex items-center gap-3 px-4 py-3 cursor-pointer transition border-b border-loom-border/30 hover:bg-white/5 ${state.activeChatId === chat.id ? "bg-white/5" : ""}`;
+          
+          wrapperItem.innerHTML = `
+            <div class="relative flex-shrink-0">
+              ${chat.isGroup ? 
+                `<div class="h-11 w-11 rounded-full bg-amber-500/20 text-loom-brand grid place-items-center text-lg ring-1 ring-white/10"><i class="fa-solid fa-users"></i></div>` :
+                `<img src="${roomImage}" class="h-11 w-11 rounded-full object-cover ring-1 ring-white/10" alt="Avatar"/>`
+              }
+            </div>
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center justify-between">
+                <p class="font-medium text-sm truncate theme-ink">${roomTitle}</p>
+              </div>
+              <p class="text-xs text-loom-muted truncate theme-muted mt-0.5">${lastMsg}</p>
+            </div>
+          `;
+
+          wrapperItem.addEventListener("click", () => openActiveChatRoom(chat.id));
+          el.chatList.appendChild(wrapperItem);
+        });
+      }
+
+      async function markChatAsSeen(roomId) {
+        const chat = state.record.chats[roomId];
+        if (!chat) return;
+        const myName = state.session.username;
+        const now = new Date().toISOString();
+        
+        // Check if there are messages we haven't "seen" yet
+        const lastSeen = chat.lastSeen?.[myName];
+        const hasNew = chat.messages.some(m => m.from !== myName && (!lastSeen || new Date(m.ts) > new Date(lastSeen)));
+
+        if (hasNew) {
+          chat.lastSeen[myName] = now;
+          await syncPushToCloud();
+        }
+      }
+
+      function openActiveChatRoom(id) {
+        state.activeChatId = id;
+        el.emptyState.classList.add("hidden");
+        el.cameraSection.classList.add("hidden");
+        el.chatHeader.classList.remove("hidden");
+        el.chatHeader.classList.add("flex");
+        el.messages.classList.remove("hidden");
+        el.composer.classList.remove("hidden");
+
+        // Adapt viewport panels for mobile screen sizing breakpoints
+        el.sidebar.classList.add("hidden");
+        el.sidebar.classList.add("md:flex");
+        el.chatArea.classList.remove("hidden");
+        el.chatArea.classList.add("flex");
+
+        const targetChat = state.record.chats[id];
+        if (targetChat.isGroup) {
+          el.peerName.textContent = targetChat.groupName;
+          el.peerStatus.textContent = `${targetChat.participants.length} room members`;
+          el.peerAvatarContainer.innerHTML = `<div class="h-10 w-10 rounded-full bg-amber-500/20 text-loom-brand grid place-items-center text-md ring-1 ring-white/10"><i class="fa-solid fa-users"></i></div>`;
+        } else {
+          const peerName = targetChat.participants.find(p => p.toLowerCase() !== state.session.username.toLowerCase());
+          el.peerName.textContent = peerName;
+          el.peerStatus.textContent = "Direct Contact";
+          const peerObj = state.record.users.find(u => u.username.toLowerCase() === peerName.toLowerCase());
+          const peerAvatarUrl = peerObj ? safeAvatar(peerObj.avatar) : DEFAULT_AVATAR;
+          el.peerAvatarContainer.innerHTML = `<img id="peerAvatar" src="${peerAvatarUrl}" class="h-10 w-10 rounded-full ring-1 ring-white/10 object-cover" />`;
+        }
+
+        renderChatMessages(id);
+        renderChatSidebarList();
+        markChatAsSeen(id);
+      }
+
+      el.backBtn.addEventListener("click", () => {
+        state.activeChatId = null;
+        el.chatArea.classList.add("hidden");
+        el.chatArea.classList.remove("flex");
+        el.sidebar.classList.remove("hidden");
+        el.sidebar.classList.add("flex");
+      });
+
+      function renderChatMessages(id) {
+        const targetChat = state.record.chats[id];
+        if (!targetChat) return;
+
+        // Save current viewing displacement location to adjust dynamic automatic adjustments
+        const checkBottom = el.messages.scrollHeight - el.messages.scrollTop <= el.messages.clientHeight + 120;
+
+        el.messages.innerHTML = "";
+        const currentMsgs = targetChat.messages || [];
+
+        currentMsgs.forEach(msg => {
+          const isMe = msg.from.toLowerCase() === state.session.username.toLowerCase();
+          const isSys = msg.from === "System";
+
+          const msgRow = document.createElement("div");
+          msgRow.className = `flex w-full ${isSys ? "justify-center" : isMe ? "justify-end" : "justify-start"}`;
+
+          if (isSys) {
+            msgRow.innerHTML = `
+              <div class="bg-black/40 border border-loom-border/20 text-[11px] text-loom-muted rounded-lg px-3 py-1 text-center max-w-sm">
+                ${msg.text}
+              </div>
+            `;
+          } else {
+            const isImage = msg.text.startsWith("data:image/");
+            
+            // Logic for seen indicator (Direct Chats)
+            let statusHtml = "";
+            if (isMe && !targetChat.isGroup) {
+              const peerName = targetChat.participants.find(p => p.toLowerCase() !== state.session.username.toLowerCase());
+              const peerSeenTs = targetChat.lastSeen?.[peerName];
+              const isSeen = peerSeenTs && new Date(peerSeenTs) >= new Date(msg.ts);
+              statusHtml = isSeen 
+                ? '<i class="fa-solid fa-check-double text-blue-400 ml-1" title="Seen"></i>' 
+                : '<i class="fa-solid fa-check ml-1 opacity-40" title="Sent"></i>';
+            }
+
+            msgRow.innerHTML = `
+              <div class="max-w-[75%] rounded-2xl px-4 py-2.5 shadow-sm text-sm relative group ${isMe ? "bg-loom-bubbleOut text-white rounded-br-none" : "bg-loom-bubbleIn theme-bubble-in theme-ink rounded-bl-none text-loom-text"}" style="word-break: break-word;">
+                ${targetChat.isGroup && !isMe ? `<p class="text-[11px] text-loom-brand font-bold mb-1 opacity-90">${msg.from}</p>` : ""}
+                ${isImage ? `<img src="${msg.text}" class="rounded-lg max-h-48 w-auto object-cover mt-1 cursor-pointer" onclick="window.open('${msg.text}')"/>` : `<p>${msg.text}</p>`}
+                <p class="text-[10px] text-right mt-1 opacity-40 select-none flex items-center justify-end">
+                  ${new Date(msg.ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  ${statusHtml}
+                </p>
+              </div>
+            `;
+          }
+
+          el.messages.appendChild(msgRow);
+        });
+
+        if (checkBottom) {
+          el.messages.scrollTop = el.messages.scrollHeight;
+        }
+      }
+
+      // Transmission of instantaneous messages
+      async function transmitMessagePayload(contentStr) {
+        if (!contentStr || !state.activeChatId) return;
+        const currentChat = state.record.chats[state.activeChatId];
+        if (!currentChat) return;
+
+        const cleanMsg = {
+          id: `msg__${Date.now()}__${Math.random().toString(36).substr(2, 5)}`,
+          from: state.session.username,
+          text: contentStr,
+          ts: new Date().toISOString()
+        };
+
+        currentChat.messages.push(cleanMsg);
+        currentChat.updatedAt = new Date().toISOString();
+        
+        // Instant visual update before network completion finishes
+        renderChatMessages(state.activeChatId);
+        el.messageInput.value = "";
+        
+        await syncPushToCloud();
+        renderChatSidebarList();
+      }
+
+      el.sendBtn.addEventListener("click", () => transmitMessagePayload(el.messageInput.value.trim()));
+      el.messageInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" && !e.shiftKey) {
+          e.preventDefault();
+          transmitMessagePayload(el.messageInput.value.trim());
+        }
+      });
+
+      // ====== Built-In Camera Architecture ======
+      el.cameraBtn.addEventListener("click", () => {
+        el.emptyState.classList.add("hidden");
+        el.chatHeader.classList.add("hidden");
+        el.messages.classList.add("hidden");
+        el.composer.classList.add("hidden");
+        el.cameraSection.classList.remove("hidden");
+      });
+
+      el.closeCameraBtn.addEventListener("click", () => {
+        el.cameraSection.classList.add("hidden");
+        if (state.activeChatId) {
+          openActiveChatRoom(state.activeChatId);
+        } else {
+          el.emptyState.classList.remove("hidden");
+        }
+        stopCameraHardware();
+      });
+
+      el.startCamBtn.addEventListener("click", async () => {
+        try {
+          state.stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+          el.camVideo.srcObject = state.stream;
+          showToast("Camera Active", "Hardware engine streaming live feed safely.");
+        } catch (err) {
+          showToast("Permission Denied", "Unable to establish localized capture parameters.");
+        }
+      });
+
+      el.snapBtn.addEventListener("click", () => {
+        if (!state.stream) {
+          showToast("Error", "Please wake up the hardware camera engine first.");
+          return;
+        }
+        if (!state.activeChatId) {
+          showToast("Notice", "Open a valid conversation room to transmit media transfers.");
+          return;
+        }
+
+        const context = el.camCanvas.getContext("2d");
+        el.camCanvas.width = el.camVideo.videoWidth || 640;
+        el.camCanvas.height = el.camVideo.videoHeight || 480;
+        context.drawImage(el.camVideo, 0, 0, el.camCanvas.width, el.camCanvas.height);
+
+        const dataUrl = el.camCanvas.toDataURL("image/jpeg", 0.7);
+        transmitMessagePayload(dataUrl);
+        showToast("Success", "Snapshot packaged and pushed directly to cloud room pipeline.");
+        el.closeCameraBtn.click();
+      });
+
+      function stopCameraHardware() {
+        if (state.stream) {
+          state.stream.getTracks().forEach(track => track.stop());
+          state.stream = null;
+          el.camVideo.srcObject = null;
+        }
+      }
+
+      el.stopCamBtn.addEventListener("click", stopCameraHardware);
+
+      // ====== Light & Dark Mode UI Controls ======
+      el.themeBtn.addEventListener("click", () => {
+        const explicitTheme = document.documentElement.getAttribute("data-theme") === "light" ? "dark" : "light";
+        document.documentElement.setAttribute("data-theme", explicitTheme);
+        localStorage.setItem(THEME_KEY, explicitTheme);
+        el.themeBtn.innerHTML = explicitTheme === "light" ? `<i class="fa-solid fa-sun"></i>` : `<i class="fa-solid fa-moon"></i>`;
+      });
+
+      // App Initialization lifecycle routines
+      window.addEventListener("DOMContentLoaded", async () => {
+        // Hydrate configuration setup states
+        const savedTheme = localStorage.getItem(THEME_KEY) || "dark";
+        document.documentElement.setAttribute("data-theme", savedTheme);
+        el.themeBtn.innerHTML = savedTheme === "light" ? `<i class="fa-solid fa-sun"></i>` : `<i class="fa-solid fa-moon"></i>`;
+
+        try {
+          const cache = localStorage.getItem(DB_KEY);
+          if (cache) state.record = ensureSchema(JSON.parse(cache));
+        } catch(e){}
+
+        // Initial Cloud Sync fetch operation
+        await syncFetchFromCloud();
+
+        // Active active identity checks
+        try {
+          const authUser = JSON.parse(localStorage.getItem(SESSION_KEY));
+          if (authUser && authUser.username) {
+            state.session = authUser;
+            launchApplicationShell();
+          }
+        } catch(e){}
+      });
     </script>
   </body>
 </html>
