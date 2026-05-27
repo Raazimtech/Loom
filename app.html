@@ -272,7 +272,10 @@
             <div id="chatList" class="scrollbar flex-1 overflow-y-auto"></div>
 
             <div class="border-t border-loom-border theme-border px-4 py-3 text-xs text-loom-muted theme-muted flex justify-between items-center">
-              <span id="syncStatus">Sync: cloud connecting...</span>
+              <div class="flex items-center gap-2">
+                <span id="syncDot" class="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                <span id="syncStatus">Sync: cloud connecting...</span>
+              </div>
               <span class="text-[10px] opacity-50">Bin Mode</span>
             </div>
           </aside>
@@ -478,6 +481,7 @@
         themeBtn: document.getElementById("themeBtn"),
         cameraBtn: document.getElementById("cameraBtn"),
         syncStatus: document.getElementById("syncStatus"),
+        syncDot: document.getElementById("syncDot"),
         cameraSection: document.getElementById("cameraSection"),
         closeCameraBtn: document.getElementById("closeCameraBtn"),
         camVideo: document.getElementById("camVideo"),
@@ -532,12 +536,20 @@
         if (!record.chats || typeof record.chats !== "object") record.chats = {};
         Object.values(record.chats).forEach(chat => {
           if (!chat.lastSeen) chat.lastSeen = {};
+          if (!chat.typing) chat.typing = {};
         });
         return record;
       }
 
       function safeAvatar(url) {
         return (url || "").trim() ? url.trim() : DEFAULT_AVATAR;
+      }
+
+      function updateSyncUI(text, dotColorClass, isPulse = false) {
+        if (el.syncStatus) el.syncStatus.textContent = text;
+        if (el.syncDot) {
+          el.syncDot.className = `h-1.5 w-1.5 rounded-full ${dotColorClass} ${isPulse ? 'animate-pulse' : ''}`;
+        }
       }
 
       // ====== Cloud Persistence Layers ======
@@ -555,16 +567,16 @@
           
           // Smart deep merge to retain real-time incoming messages without overriding state variables
           mergeCloudRecords(wrapper.record);
-          el.syncStatus.textContent = "Sync: Live Connected";
+          updateSyncUI("Sync: Live Connected", "bg-green-500");
         } catch (err) {
           console.error(err);
-          el.syncStatus.textContent = "Sync: Connection Offline";
+          updateSyncUI("Sync: Connection Offline", "bg-red-500");
         }
       }
 
       async function syncPushToCloud() {
         try {
-          el.syncStatus.textContent = "Sync: Updating Remote...";
+          updateSyncUI("Sync: Updating Remote...", "bg-amber-500", true);
           const response = await fetch(BIN_ENDPOINT, {
             method: "PUT",
             headers: {
@@ -576,10 +588,10 @@
             body: JSON.stringify(state.record)
           });
           if (!response.ok) throw new Error("Database push error");
-          el.syncStatus.textContent = "Sync: Saved Changes";
+          updateSyncUI("Sync: Saved Changes", "bg-green-500");
         } catch (err) {
           console.error(err);
-          el.syncStatus.textContent = "Sync: Update Suspended";
+          updateSyncUI("Sync: Update Suspended", "bg-red-500");
         }
       }
 
@@ -618,6 +630,17 @@
                 const localTs = state.record.chats[roomId].lastSeen[user];
                 if (!localTs || new Date(ts) > new Date(localTs)) {
                   state.record.chats[roomId].lastSeen[user] = ts;
+                }
+              });
+            }
+
+            // Sync typing status
+            if (!state.record.chats[roomId].typing) state.record.chats[roomId].typing = {};
+            if (incoming.chats[roomId].typing) {
+              Object.entries(incoming.chats[roomId].typing).forEach(([user, ts]) => {
+                // Only sync others' typing status to avoid overwriting own local typing state mid-keystroke
+                if (user.toLowerCase() !== state.session.username.toLowerCase()) {
+                  state.record.chats[roomId].typing[user] = ts;
                 }
               });
             }
@@ -795,6 +818,7 @@
               participants: [state.session.username, targetUser.username],
               messages: [],
               lastSeen: {},
+              typing: {},
               updatedAt: new Date().toISOString()
             };
           }
@@ -822,6 +846,7 @@
             groupName: entryValue,
             participants: validParticipants,
             lastSeen: {},
+            typing: {},
             messages: [{
               id: `msg__${Date.now()}`,
               from: "System",
@@ -848,6 +873,12 @@
         el.chatList.innerHTML = "";
         const activeRooms = Object.values(state.record.chats).sort((a,b) => new Date(b.updatedAt) - new Date(a.updatedAt));
 
+        const isTyping = (chat, username) => {
+          const ts = chat.typing?.[username];
+          if (!ts) return false;
+          return (Date.now() - new Date(ts).getTime()) < 5000;
+        };
+
         activeRooms.forEach(chat => {
           // Verify access authorization
           if (!chat.participants.map(p => p.toLowerCase()).includes(state.session.username.toLowerCase())) return;
@@ -867,7 +898,16 @@
             if (state.searchQuery && !roomTitle.toLowerCase().includes(state.searchQuery)) return;
           }
 
-          const lastMsg = chat.messages && chat.messages.length ? chat.messages[chat.messages.length - 1].text : "No messages yet";
+          // Determine if any participant (other than self) is typing
+          const typers = chat.participants.filter(p => p.toLowerCase() !== state.session.username.toLowerCase() && isTyping(chat, p));
+          
+          let lastMsg = chat.messages && chat.messages.length ? chat.messages[chat.messages.length - 1].text : "No messages yet";
+          let statusClass = "text-loom-muted theme-muted";
+
+          if (typers.length > 0) {
+            lastMsg = chat.isGroup ? `${typers[0]} is typing...` : "typing...";
+            statusClass = "text-loom-brand font-medium animate-pulse";
+          }
           
           const wrapperItem = document.createElement("div");
           wrapperItem.className = `flex items-center gap-3 px-4 py-3 cursor-pointer transition border-b border-loom-border/30 hover:bg-white/5 ${state.activeChatId === chat.id ? "bg-white/5" : ""}`;
@@ -883,7 +923,7 @@
               <div class="flex items-center justify-between">
                 <p class="font-medium text-sm truncate theme-ink">${roomTitle}</p>
               </div>
-              <p class="text-xs text-loom-muted truncate theme-muted mt-0.5">${lastMsg}</p>
+              <p class="text-xs truncate mt-0.5 ${statusClass}">${lastMsg}</p>
             </div>
           `;
 
@@ -942,6 +982,24 @@
         markChatAsSeen(id);
       }
 
+      function updateHeaderStatus(id) {
+        const targetChat = state.record.chats[id];
+        if (!targetChat) return;
+
+        const typers = targetChat.participants.filter(p => 
+          p.toLowerCase() !== state.session.username.toLowerCase() && 
+          (targetChat.typing?.[p] && (Date.now() - new Date(targetChat.typing[p]).getTime()) < 5000)
+        );
+
+        if (typers.length > 0) {
+          el.peerStatus.textContent = targetChat.isGroup ? `${typers.join(", ")} typing...` : "typing...";
+          el.peerStatus.classList.add("text-loom-brand", "animate-pulse");
+        } else {
+          el.peerStatus.textContent = targetChat.isGroup ? `${targetChat.participants.length} room members` : "Direct Contact";
+          el.peerStatus.classList.remove("text-loom-brand", "animate-pulse");
+        }
+      }
+
       el.backBtn.addEventListener("click", () => {
         state.activeChatId = null;
         el.chatArea.classList.add("hidden");
@@ -956,6 +1014,8 @@
 
         // Save current viewing displacement location to adjust dynamic automatic adjustments
         const checkBottom = el.messages.scrollHeight - el.messages.scrollTop <= el.messages.clientHeight + 120;
+
+        updateHeaderStatus(id);
 
         el.messages.innerHTML = "";
         const currentMsgs = targetChat.messages || [];
@@ -1022,6 +1082,9 @@
 
         currentChat.messages.push(cleanMsg);
         currentChat.updatedAt = new Date().toISOString();
+
+        // Clear typing status immediately upon sending
+        if (currentChat.typing) delete currentChat.typing[state.session.username];
         
         // Instant visual update before network completion finishes
         renderChatMessages(state.activeChatId);
@@ -1031,11 +1094,30 @@
         renderChatSidebarList();
       }
 
+      let typingThrottleTimer = null;
+      function handleTypingIndicator() {
+        if (!state.activeChatId) return;
+        const chat = state.record.chats[state.activeChatId];
+        if (!chat) return;
+
+        chat.typing[state.session.username] = new Date().toISOString();
+        
+        // Throttle cloud updates to once every 2 seconds while typing
+        if (!typingThrottleTimer) {
+          typingThrottleTimer = setTimeout(async () => {
+            await syncPushToCloud();
+            typingThrottleTimer = null;
+          }, 2000);
+        }
+      }
+
       el.sendBtn.addEventListener("click", () => transmitMessagePayload(el.messageInput.value.trim()));
       el.messageInput.addEventListener("keydown", (e) => {
         if (e.key === "Enter" && !e.shiftKey) {
           e.preventDefault();
           transmitMessagePayload(el.messageInput.value.trim());
+        } else {
+          handleTypingIndicator();
         }
       });
 
