@@ -530,6 +530,9 @@
         const record = obj && typeof obj === "object" ? obj : {};
         if (!Array.isArray(record.users)) record.users = [];
         if (!record.chats || typeof record.chats !== "object") record.chats = {};
+        Object.values(record.chats).forEach(chat => {
+          if (!chat.lastSeen) chat.lastSeen = {};
+        });
         return record;
       }
 
@@ -542,7 +545,10 @@
         try {
           const response = await fetch(`${BIN_ENDPOINT}/latest`, {
             method: "GET",
-            headers: { "X-Master-Key": X_MASTER_KEY }
+            headers: { 
+              "X-Master-Key": X_MASTER_KEY,
+              "X-Access-Key": X_ACCESS_KEY
+            }
           });
           if (!response.ok) throw new Error("Database fetch error");
           const wrapper = await response.json();
@@ -564,6 +570,7 @@
             headers: {
               "Content-Type": "application/json",
               "X-Master-Key": X_MASTER_KEY,
+              "X-Access-Key": X_ACCESS_KEY,
               "X-Bin-Versioning": "false"
             },
             body: JSON.stringify(state.record)
@@ -603,6 +610,17 @@
             });
             state.record.chats[roomId].messages = combined.sort((a,b) => new Date(a.ts) - new Date(b.ts));
             state.record.chats[roomId].updatedAt = incoming.chats[roomId].updatedAt || state.record.chats[roomId].updatedAt;
+            
+            // Sync lastSeen status
+            if (!state.record.chats[roomId].lastSeen) state.record.chats[roomId].lastSeen = {};
+            if (incoming.chats[roomId].lastSeen) {
+              Object.entries(incoming.chats[roomId].lastSeen).forEach(([user, ts]) => {
+                const localTs = state.record.chats[roomId].lastSeen[user];
+                if (!localTs || new Date(ts) > new Date(localTs)) {
+                  state.record.chats[roomId].lastSeen[user] = ts;
+                }
+              });
+            }
           }
         });
 
@@ -776,6 +794,7 @@
               isGroup: false,
               participants: [state.session.username, targetUser.username],
               messages: [],
+              lastSeen: {},
               updatedAt: new Date().toISOString()
             };
           }
@@ -802,6 +821,7 @@
             isGroup: true,
             groupName: entryValue,
             participants: validParticipants,
+            lastSeen: {},
             messages: [{
               id: `msg__${Date.now()}`,
               from: "System",
@@ -872,6 +892,22 @@
         });
       }
 
+      async function markChatAsSeen(roomId) {
+        const chat = state.record.chats[roomId];
+        if (!chat) return;
+        const myName = state.session.username;
+        const now = new Date().toISOString();
+        
+        // Check if there are messages we haven't "seen" yet
+        const lastSeen = chat.lastSeen?.[myName];
+        const hasNew = chat.messages.some(m => m.from !== myName && (!lastSeen || new Date(m.ts) > new Date(lastSeen)));
+
+        if (hasNew) {
+          chat.lastSeen[myName] = now;
+          await syncPushToCloud();
+        }
+      }
+
       function openActiveChatRoom(id) {
         state.activeChatId = id;
         el.emptyState.classList.add("hidden");
@@ -903,6 +939,7 @@
 
         renderChatMessages(id);
         renderChatSidebarList();
+        markChatAsSeen(id);
       }
 
       el.backBtn.addEventListener("click", () => {
@@ -938,11 +975,26 @@
             `;
           } else {
             const isImage = msg.text.startsWith("data:image/");
+            
+            // Logic for seen indicator (Direct Chats)
+            let statusHtml = "";
+            if (isMe && !targetChat.isGroup) {
+              const peerName = targetChat.participants.find(p => p.toLowerCase() !== state.session.username.toLowerCase());
+              const peerSeenTs = targetChat.lastSeen?.[peerName];
+              const isSeen = peerSeenTs && new Date(peerSeenTs) >= new Date(msg.ts);
+              statusHtml = isSeen 
+                ? '<i class="fa-solid fa-check-double text-blue-400 ml-1" title="Seen"></i>' 
+                : '<i class="fa-solid fa-check ml-1 opacity-40" title="Sent"></i>';
+            }
+
             msgRow.innerHTML = `
               <div class="max-w-[75%] rounded-2xl px-4 py-2.5 shadow-sm text-sm relative group ${isMe ? "bg-loom-bubbleOut text-white rounded-br-none" : "bg-loom-bubbleIn theme-bubble-in theme-ink rounded-bl-none text-loom-text"}" style="word-break: break-word;">
                 ${targetChat.isGroup && !isMe ? `<p class="text-[11px] text-loom-brand font-bold mb-1 opacity-90">${msg.from}</p>` : ""}
                 ${isImage ? `<img src="${msg.text}" class="rounded-lg max-h-48 w-auto object-cover mt-1 cursor-pointer" onclick="window.open('${msg.text}')"/>` : `<p>${msg.text}</p>`}
-                <p class="text-[10px] text-right mt-1 opacity-40 select-none">${new Date(msg.ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                <p class="text-[10px] text-right mt-1 opacity-40 select-none flex items-center justify-end">
+                  ${new Date(msg.ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  ${statusHtml}
+                </p>
               </div>
             `;
           }
