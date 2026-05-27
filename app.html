@@ -563,7 +563,8 @@
             method: "PUT",
             headers: {
               "Content-Type": "application/json",
-              "X-Master-Key": X_MASTER_KEY
+              "X-Master-Key": X_MASTER_KEY,
+              "X-Bin-Versioning": "false"
             },
             body: JSON.stringify(state.record)
           });
