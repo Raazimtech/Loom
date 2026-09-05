@@ -1,1 +1,16 @@
-{"name":"Lunar","short_name":"Lunar","start_url":"app.html","display":"standalone","background_color":"#f4f6f1","theme_color":"#173c2b","description":"Turn long-term goals into clear daily actions.","icons":[{"src":"logo.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]}
+{
+  "id": "./app.html",
+  "name": "Lunar",
+  "short_name": "Lunar",
+  "description": "Turn long-term goals into clear daily actions.",
+  "start_url": "./app.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#f4f6f1",
+  "theme_color": "#173c2b",
+  "prefer_related_applications": false,
+  "icons": [
+    {"src":"logo.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}
+  ]
+}
