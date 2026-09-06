@@ -1,75 +1,467 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-const SUPABASE_URL='https://dpiwdhtbhwjgatvcfkcb.supabase.co';
-const SUPABASE_KEY=['sb_','publishable_','PSZnTEo74jObih_6TTpXVQ_tJwzTnXY'].join('');
-const supabase=createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}});
-const $=id=>document.getElementById(id); const today=()=>new Date().toISOString().slice(0,10); const uid=()=>crypto.randomUUID();
-let signup=false,authBusy=false,state={tasks:[],occ:[],subs:[],milestones:[],evals:[],categories:[],settings:{theme:'system',notifications_enabled:false,daily_summary:true,week_starts:'monday'},user:null,month:new Date(),online:navigator.onLine};
-const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
-function toast(message){const t=$('toast');t.textContent=message;t.classList.add('show');clearTimeout(window.__toast);window.__toast=setTimeout(()=>t.classList.remove('show'),2300)}
-function busy(on,text='Working…'){ $('loadingText').textContent=text; $('loading').classList.toggle('hidden',!on) }
-function buttonBusy(btn,on,label){if(!btn)return;btn.disabled=on;if(on){btn.dataset.label=btn.textContent;btn.textContent=label||'Working…'}else btn.textContent=btn.dataset.label||btn.textContent}
-function fmtDate(d){return new Date(d+'T12:00:00').toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'})}
-function dayLabel(d){return new Date(d+'T12:00:00').toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'})}
-function typeLabel(t){return t==='goal'?'Goal':t==='recurring'?'Routine':'Task'}
-function priorityRank(p){return p==='high'?3:p==='medium'?2:1}
-function applyTheme(){const theme=state.settings.theme;const dark=theme==='dark'||(theme==='system'&&matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.classList.toggle('dark',dark)}
-function localKey(){return `lunar-cache-${state.user?.id||'guest'}`}
-function saveCache(){if(!state.user)return;localStorage.setItem(localKey(),JSON.stringify({tasks:state.tasks,occ:state.occ,subs:state.subs,milestones:state.milestones,evals:state.evals,categories:state.categories,settings:state.settings}))}
-function readCache(){try{return JSON.parse(localStorage.getItem(localKey())||'null')}catch{return null}}
-async function queueOp(op){const k=`lunar-queue-${state.user.id}`;const q=JSON.parse(localStorage.getItem(k)||'[]');q.push(op);localStorage.setItem(k,JSON.stringify(q))}
-async function syncQueue(){if(!state.user||!navigator.onLine)return;const k=`lunar-queue-${state.user.id}`;const q=JSON.parse(localStorage.getItem(k)||'[]');if(!q.length)return;const rest=[];for(const op of q){try{if(op.type==='complete')await supabase.from('lunar_task_occurrences').update(op.patch).eq('id',op.id).eq('user_id',state.user.id);else if(op.type==='create')await createRemote(op.payload);else if(op.type==='updateOcc')await supabase.from('lunar_task_occurrences').update(op.patch).eq('id',op.id).eq('user_id',state.user.id)}catch{rest.push(op)}}localStorage.setItem(k,JSON.stringify(rest));if(q.length!==rest.length){toast('Offline changes synced');await loadData()}}
-window.showView=name=>{const allowed=['home','tasks','create','calendar','evaluate','insights','history','profile'];if(!allowed.includes(name))name='home';document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active',v.id===name));document.querySelectorAll('.nav-item[data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===name));history.replaceState(null,'',`#${name}`);if(name==='create')prepareCreate();if(name==='calendar')renderCalendar();if(name==='insights')renderInsights();if(name==='history')renderHistory();if(name==='home'||name==='tasks')renderAll()};
-function prepareCreate(){if(!$('start').value)$('start').value=today();if(!$('end').value)$('end').value=today();renderCategoryOptions()}
-function renderCategoryOptions(){const c=$('category');c.innerHTML='<option value="">No category</option>'+state.categories.map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join('')+'<option value="__new">+ New category</option>'}
-function renderAll(){renderHome();renderTasks()}
-function getTask(id){return state.tasks.find(t=>t.id===id)}
-function getOccForTask(id){return state.occ.filter(o=>o.task_id===id)}
-function updateMissed(){const now=today();state.occ.forEach(o=>{if(o.status==='upcoming'&&o.scheduled_date<now)o.status='missed'})}
-function calcStreak(taskId=null){const dates=[...new Set(state.occ.filter(o=>(!taskId||o.task_id===taskId)&&o.status==='completed').map(o=>o.scheduled_date))].sort().reverse();let streak=0,d=new Date();d.setHours(12,0,0,0);for(const x of dates){const ds=d.toISOString().slice(0,10);if(x===ds){streak++;d.setDate(d.getDate()-1)}else if(x<ds){if(streak===0){d=new Date(x+'T12:00:00');streak=1;d.setDate(d.getDate()-1)}else break}}return streak}
-function overallStats(){const past=state.occ.filter(o=>o.scheduled_date<=today());const done=past.filter(o=>o.status==='completed').length;const missed=past.filter(o=>o.status==='missed').length;return {done,missed,total:past.length,rate:past.length?Math.round(done/past.length*100):0,streak:calcStreak()}}
-function taskProgress(t){const os=getOccForTask(t.id);const done=os.filter(o=>o.status==='completed').length;return {done,total:os.length,pct:os.length?Math.round(done/os.length*100):0}}
-function taskCard(t,o){const done=o.status==='completed';return `<div class="task"><button class="check ${done?'done':''}" data-occ="${o.id}" aria-label="${done?'Completed':'Complete task'}"></button><div class="task-main" data-task="${t.id}"><div class="task-title">${esc(t.title)}</div><div class="task-meta">${dayLabel(o.scheduled_date)}${o.scheduled_time?' · '+o.scheduled_time:''} · ${typeLabel(t.task_type)}</div></div><div class="task-side"><span class="priority ${t.priority}">${esc(t.priority)}</span><button class="more" data-menu="${t.id}" aria-label="More">•••</button></div></div>`}
-function renderHome(){const s=overallStats(),tod=state.occ.filter(o=>o.scheduled_date===today()),done=tod.filter(o=>o.status==='completed').length;const username=state.user?.username||state.user?.user_metadata?.username||'there';$('hello').textContent=`Good to see you, ${username}.`;$('date').textContent=new Date().toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'});$('stats').innerHTML=`<div class="card stat"><div class="stat-label">Today</div><div class="stat-value">${done}/${tod.length}</div><div class="progress"><i style="width:${tod.length?done/tod.length*100:0}%"></i></div></div><div class="card stat"><div class="stat-label">Current streak</div><div class="stat-value">${s.streak} <small style="font-size:13px">days</small></div><div class="stat-foot">Best is ${bestStreak()} days</div></div><div class="card stat"><div class="stat-label">Consistency</div><div class="stat-value">${s.rate}%</div><div class="stat-foot">${s.done} completed · ${s.missed} missed</div></div><div class="card stat"><div class="stat-label">Active plans</div><div class="stat-value">${state.tasks.filter(t=>t.status==='active').length}</div><div class="stat-foot">${state.tasks.filter(t=>t.task_type==='goal'&&t.status==='active').length} active goals</div></div>`;$('todayCount').textContent=`${done}/${tod.length}`;$('todayTasks').innerHTML=tod.length?tod.map(o=>taskCard(getTask(o.task_id)||{title:'Task',priority:'medium',task_type:'one_time'},o)).join(''):`<div class="empty"><strong>Nothing scheduled today.</strong><br><span>Give yourself one useful action to begin.</span></div>`;const goals=state.tasks.filter(t=>t.task_type==='goal'&&t.status==='active').slice(0,3);$('goalPreview').innerHTML=goals.length?goals.map(t=>{const p=taskProgress(t);return `<div class="card plan"><div class="plan-top"><div><div class="plan-title">${esc(t.title)}</div><div class="plan-type">${t.end_date?'Ends '+fmtDate(t.end_date):'Ongoing goal'}</div></div><span class="status">${p.pct}%</span></div><div class="plan-progress"><div class="progress"><i style="width:${p.pct}%"></i></div><span class="plan-percent">${p.done}/${p.total}</span></div></div>`}).join(''):`<div class="empty"><strong>No active goals yet.</strong><br><span>Make something you want to become measurable.</span></div>`;bindTaskActions()}
-function bestStreak(){let best=0;const days=[...new Set(state.occ.filter(o=>o.status==='completed').map(o=>o.scheduled_date))].sort();let run=0,prev=null;for(const x of days){if(prev){const a=new Date(prev+'T12:00:00'),b=new Date(x+'T12:00:00');if((b-a)/86400000===1)run++;else run=1}else run=1;best=Math.max(best,run);prev=x}return best}
-function renderTasks(){let arr=[...state.tasks];const q=($('taskSearch')?.value||'').trim().toLowerCase(),f=$('taskFilter')?.value||'all',sort=$('taskSort')?.value||'new';if(q)arr=arr.filter(t=>(t.title+' '+(t.description||'')+' '+(t.tags||[]).join(' ')).toLowerCase().includes(q));if(f==='active'||f==='paused'||f==='archived')arr=arr.filter(t=>t.status===f);if(f==='goal'||f==='recurring')arr=arr.filter(t=>t.task_type===f);if(f==='completed')arr=arr.filter(t=>taskProgress(t).total&&taskProgress(t).pct===100);if(sort==='priority')arr.sort((a,b)=>priorityRank(b.priority)-priorityRank(a.priority));if(sort==='title')arr.sort((a,b)=>a.title.localeCompare(b.title));if(sort==='start')arr.sort((a,b)=>(a.start_date||'').localeCompare(b.start_date||''));$('allTasks').innerHTML=arr.length?arr.map(t=>{const p=taskProgress(t);const tags=(t.tags||[]).map(x=>`<span class="tag">${esc(x)}</span>`).join('');return `<div class="card plan"><div class="plan-top"><div><div class="plan-title">${esc(t.title)}</div><div class="plan-type">${typeLabel(t.task_type)} · ${t.start_date?fmtDate(t.start_date):'No start'}${t.end_date?' → '+fmtDate(t.end_date):''}</div>${tags}</div><span class="priority ${t.priority}">${esc(t.priority)}</span></div>${p.total?`<div class="plan-progress"><div class="progress"><i style="width:${p.pct}%"></i></div><span class="plan-percent">${p.pct}%</span></div>`:''}<div class="form-footer"><button class="ghost" data-detail="${t.id}">Open</button><button class="ghost" data-menu="${t.id}">•••</button></div></div>`}).join(''):`<div class="empty"><strong>No plans match.</strong><br><span>Try another filter or create something new.</span></div>`;bindTaskActions()}
-function bindTaskActions(){document.querySelectorAll('[data-occ]').forEach(b=>b.onclick=()=>completeOccurrence(b.dataset.occ,b));document.querySelectorAll('[data-menu]').forEach(b=>b.onclick=()=>openTaskMenu(b.dataset.menu));document.querySelectorAll('[data-detail]').forEach(b=>b.onclick=()=>openTaskDetail(b.dataset.detail));document.querySelectorAll('[data-task]').forEach(x=>x.onclick=()=>openTaskDetail(x.dataset.task))}
-async function completeOccurrence(id,btn){const o=state.occ.find(x=>x.id===id);if(!o||o.status==='completed')return;buttonBusy(btn,true,'…');const patch={status:'completed',completed_at:new Date().toISOString()};o.status='completed';o.completed_at=patch.completed_at;saveCache();if(navigator.onLine){const {error}=await supabase.from('lunar_task_occurrences').update(patch).eq('id',id).eq('user_id',state.user.id);if(error){await queueOp({type:'complete',id,patch});toast('Saved offline. It will sync when you're back.')}else toast('Nice. One action done.')}else{await queueOp({type:'complete',id,patch});toast('Saved offline. It will sync when you reconnect.')}renderAll()}
-function openTaskMenu(id){const t=getTask(id);if(!t)return;openModal(`<div class="modal-head"><div><div class="eyebrow">${typeLabel(t.task_type)}</div><h2>${esc(t.title)}</h2></div><button class="modal-close" data-close>×</button></div><div class="action-list"><button data-act="complete">Complete next occurrence</button><button data-act="skip">Skip next occurrence</button><button data-act="pause">${t.status==='paused'?'Resume':'Pause'} plan</button><button data-act="extend">Extend by 7 days</button><button data-act="duplicate">Duplicate plan</button><button data-act="archive">${t.status==='archived'?'Restore':'Archive'} plan</button><button data-act="delete" style="color:var(--danger)">Delete plan</button></div>`);document.querySelectorAll('[data-act]').forEach(b=>b.onclick=()=>taskAction(id,b.dataset.act))}
-async function taskAction(id,act){const t=getTask(id);if(!t)return;closeModal();if(act==='complete'){const o=getOccForTask(id).find(x=>x.status==='upcoming'||x.status==='due');if(o)completeOccurrence(o.id,document.querySelector(`[data-occ="${o.id}"]`));else toast('No upcoming occurrence.')}else if(act==='skip'){const o=getOccForTask(id).find(x=>x.status==='upcoming'||x.status==='due');if(!o)return toast('No upcoming occurrence.');await changeOccurrence(o,{status:'skipped',skipped_at:new Date().toISOString()});toast('Occurrence skipped')}else if(act==='pause'){const next=t.status==='paused'?'active':'paused';await updateTask(t,{status:next});toast(next==='paused'?'Plan paused':'Plan resumed')}else if(act==='extend'){const end=new Date((t.end_date||today())+'T12:00:00');end.setDate(end.getDate()+7);const newEnd=end.toISOString().slice(0,10);await updateTask(t,{end_date:newEnd});await generateMissingOccurrences(t,newEnd);toast('Plan extended 7 days')}else if(act==='duplicate'){await duplicateTask(t)}else if(act==='archive'){await updateTask(t,{status:t.status==='archived'?'active':'archived'});toast(t.status==='archived'?'Plan restored':'Plan archived')}else if(act==='delete'){if(confirm('Delete this plan and its history?')){busy(true,'Deleting plan…');await supabase.from('lunar_tasks').delete().eq('id',id).eq('user_id',state.user.id);state.tasks=state.tasks.filter(x=>x.id!==id);state.occ=state.occ.filter(x=>x.task_id!==id);busy(false);toast('Plan deleted');renderAll()}}}
-async function changeOccurrence(o,patch){Object.assign(o,patch);saveCache();if(navigator.onLine){const {error}=await supabase.from('lunar_task_occurrences').update(patch).eq('id',o.id).eq('user_id',state.user.id);if(error)await queueOp({type:'updateOcc',id:o.id,patch})}else await queueOp({type:'updateOcc',id:o.id,patch});renderAll()}
-async function updateTask(t,patch){Object.assign(t,patch);saveCache();if(navigator.onLine){const {error}=await supabase.from('lunar_tasks').update(patch).eq('id',t.id).eq('user_id',state.user.id);if(error)toast('Saved locally; sync will retry')}else toast('Saved offline')}
-async function duplicateTask(t){const copy={...t,id:uid(),user_id:state.user.id,title:`${t.title} copy`,created_at:new Date().toISOString(),updated_at:new Date().toISOString()};delete copy.category_id;await createRemote({task:copy,occ:[],subs:[],milestones:[]});state.tasks.unshift(copy);toast('Plan duplicated');renderAll()}
-async function openTaskDetail(id){const t=getTask(id);if(!t)return;const p=taskProgress(t),os=getOccForTask(id).sort((a,b)=>a.scheduled_date.localeCompare(b.scheduled_date));const ms=state.milestones.filter(x=>x.task_id===id).sort((a,b)=>a.position-b.position);const ss=state.subs.filter(x=>x.task_id===id).sort((a,b)=>a.position-b.position);openModal(`<div class="modal-head"><div><div class="eyebrow">${typeLabel(t.task_type)}</div><h2>${esc(t.title)}</h2><p class="muted" style="margin:5px 0 0">${esc(t.description||'No description yet.')}</p></div><button class="modal-close" data-close>×</button></div><div class="card" style="margin-bottom:10px"><div class="plan-progress"><div class="progress"><i style="width:${p.pct}%"></i></div><b>${p.pct}%</b></div><div class="hint" style="margin-top:8px">${p.done} completed of ${p.total} scheduled · ${calcStreak(id)} day streak</div></div>${ms.length?`<div class="section-head"><h3>Milestones</h3></div><div class="task-list">${ms.map(m=>`<div class="task"><button class="check ${m.completed?'done':''}" data-milestone="${m.id}"></button><div class="task-main"><div class="task-title">${esc(m.title)}</div></div></div>`).join('')}</div>`:''}${ss.length?`<div class="section-head"><h3>Subtasks</h3></div><div class="task-list">${ss.map(s=>`<div class="task"><button class="check ${s.completed?'done':''}" data-subtask="${s.id}"></button><div class="task-main"><div class="task-title">${esc(s.title)}</div></div></div>`).join('')}</div>`:''}<div class="section-head"><h3>Timeline</h3></div><div class="task-list">${os.slice(0,20).map(o=>`<div class="task"><span class="history-state ${o.status==='missed'?'missed':''}">${o.status==='completed'?'✓':o.status==='skipped'?'–':'•'}</span><div class="task-main"><div class="task-title">${dayLabel(o.scheduled_date)}</div><div class="task-meta">${esc(o.status)}</div></div></div>`).join('')}</div>`);document.querySelectorAll('[data-milestone]').forEach(b=>b.onclick=()=>toggleMilestone(b.dataset.milestone));document.querySelectorAll('[data-subtask]').forEach(b=>b.onclick=()=>toggleSubtask(b.dataset.subtask))}
-async function toggleMilestone(id){const m=state.milestones.find(x=>x.id===id);if(!m)return;m.completed=!m.completed;saveCache();if(navigator.onLine)await supabase.from('lunar_milestones').update({completed:m.completed}).eq('id',id).eq('user_id',state.user.id);openTaskDetail(m.task_id)}
-async function toggleSubtask(id){const s=state.subs.find(x=>x.id===id);if(!s)return;s.completed=!s.completed;saveCache();if(navigator.onLine)await supabase.from('lunar_subtasks').update({completed:s.completed}).eq('id',id).eq('user_id',state.user.id);openTaskDetail(s.task_id)}
-function openModal(html){$('modal').innerHTML=html;$('modalBackdrop').classList.remove('hidden');document.querySelectorAll('[data-close]').forEach(x=>x.onclick=closeModal)}function closeModal(){$('modalBackdrop').classList.add('hidden');$('modal').innerHTML=''}$('modalBackdrop').onclick=e=>{if(e.target===$('modalBackdrop'))closeModal()};
-function makeOccurrences(taskId,userId,start,end,rule){const rows=[];let d=new Date(start+'T12:00:00'),last=new Date(end+'T12:00:00');const repeat=rule?.repeat||'daily',days=rule?.days||[];while(d<=last){const day=d.getDay(),ok=repeat==='daily'||(repeat==='weekdays'&&day>0&&day<6)||(repeat==='weekly'&&day===new Date(start+'T12:00:00').getDay())||(repeat==='custom'&&days.includes(day));if(ok)rows.push({id:uid(),task_id:taskId,user_id:userId,scheduled_date:d.toISOString().slice(0,10),scheduled_time:rule?.time||null,status:'upcoming',estimated_minutes:rule?.duration||null});d.setDate(d.getDate()+1)}return rows}
-async function createRemote(payload){const {task,occ,subs,milestones}=payload;let {error}=await supabase.from('lunar_tasks').insert(task);if(error)throw error;if(occ?.length){const r=await supabase.from('lunar_task_occurrences').insert(occ);if(r.error)throw r.error}if(subs?.length){const r=await supabase.from('lunar_subtasks').insert(subs);if(r.error)throw r.error}if(milestones?.length){const r=await supabase.from('lunar_milestones').insert(milestones);if(r.error)throw r.error}}
-async function generateMissingOccurrences(t,end){const rule=t.recurrence_rule||{};const rows=makeOccurrences(t.id,state.user.id,t.start_date,end,rule);const existing=new Set(getOccForTask(t.id).map(x=>x.scheduled_date));const fresh=rows.filter(x=>!existing.has(x.scheduled_date));if(!fresh.length)return;state.occ.push(...fresh);if(navigator.onLine){const r=await supabase.from('lunar_task_occurrences').insert(fresh);if(r.error)toast('Could not extend schedule')}else toast('Extension saved offline')}
-function resetCreate(){ $('taskForm').reset();$('type').value='one_time';document.querySelectorAll('.choice').forEach((x,i)=>x.classList.toggle('active',i===0));$('repeatBox').classList.add('hidden');$('milestoneBox').classList.add('hidden');$('weekdayBox').classList.add('hidden');$('subtasks').innerHTML='';$('milestones').innerHTML='';addSubtaskRow();$('start').value=today();$('end').value=today();renderCategoryOptions()}
-function addSubtaskRow(value=''){const row=document.createElement('div');row.className='subtask-row';row.innerHTML=`<input class="subtask-input" type="text" maxlength="120" placeholder="Break it into a smaller action" value="${esc(value)}"><button type="button" class="mini-btn remove-row">×</button>`;$('subtasks').appendChild(row);row.querySelector('.remove-row').onclick=()=>row.remove()}
-function addMilestoneRow(value=''){const row=document.createElement('div');row.className='subtask-row';row.innerHTML=`<input class="milestone-input" type="text" maxlength="160" placeholder="Milestone" value="${esc(value)}"><button type="button" class="mini-btn remove-row">×</button>`;$('milestones').appendChild(row);row.querySelector('.remove-row').onclick=()=>row.remove()}
-$('addSubtask').onclick=()=>addSubtaskRow();$('addMilestone').onclick=()=>addMilestoneRow();
-document.querySelectorAll('.choice').forEach(b=>b.onclick=()=>{document.querySelectorAll('.choice').forEach(x=>x.classList.remove('active'));b.classList.add('active');$('type').value=b.dataset.type;$('repeatBox').classList.toggle('hidden',b.dataset.type==='one_time');$('milestoneBox').classList.toggle('hidden',b.dataset.type!=='goal');if(b.dataset.type!=='one_time'&&!$('end').value)$('end').value=today()});
-$('repeat').onchange=()=>{$('weekdayBox').classList.toggle('hidden',$('repeat').value!=='custom')};document.querySelectorAll('.day-chip').forEach(b=>b.onclick=()=>b.classList.toggle('active'));
-$('category').onchange=()=>{if($('category').value==='__new'){const name=prompt('Category name');if(name?.trim()){createCategory(name.trim())}else renderCategoryOptions()}};
-async function createCategory(name){const {data,error}=await supabase.from('lunar_categories').insert({user_id:state.user.id,name,icon:'•'}).select().single();if(error){toast('Could not create category');return}state.categories.push(data);renderCategoryOptions();$('category').value=data.id}
-$('taskForm').onsubmit=async e=>{e.preventDefault();const btn=$('createSubmit');if(btn.disabled)return;const title=$('title').value.trim();if(!title)return;const start=$('start').value||today(),type=$('type').value,end=$('end').value||start;if(end<start)return toast('End date must be on or after start');let rule=null;if(type!=='one_time'){rule={repeat:$('repeat').value,duration:+$('duration').value||null,time:$('reminder').value||null,days:[...document.querySelectorAll('.day-chip.active')].map(x=>+x.dataset.day)};if(rule.repeat==='custom'&&!rule.days.length)return toast('Choose at least one day')}const task={id:uid(),user_id:state.user.id,category_id:$('category').value||null,title,description:$('description').value.trim()||null,task_type:type,priority:$('priority').value,start_date:start,end_date:end,reminder_time:$('reminder').value||null,status:'active',recurrence_rule:rule,estimated_minutes:+$('duration').value||null,tags:$('tags').value.split(',').map(x=>x.trim()).filter(Boolean)};const occ=type==='one_time'?[{id:uid(),task_id:task.id,user_id:state.user.id,scheduled_date:start,scheduled_time:task.reminder_time,status:'upcoming',estimated_minutes:task.estimated_minutes}]:makeOccurrences(task.id,state.user.id,start,end,rule);const subs=[...document.querySelectorAll('.subtask-input')].map((x,i)=>x.value.trim()?{id:uid(),task_id:task.id,user_id:state.user.id,title:x.value.trim(),position:i,completed:false}:null).filter(Boolean);const milestones=[...document.querySelectorAll('.milestone-input')].map((x,i)=>x.value.trim()?{id:uid(),task_id:task.id,user_id:state.user.id,title:x.value.trim(),position:i,completed:false}:null).filter(Boolean);buttonBusy(btn,true,'Creating…');busy(true,'Creating your plan…');state.tasks.unshift(task);state.occ.push(...occ);state.subs.push(...subs);state.milestones.push(...milestones);saveCache();try{if(navigator.onLine){await createRemote({task,occ,subs,milestones});toast('Plan created');}else{await queueOp({type:'create',payload:{task,occ,subs,milestones}});toast('Plan saved offline. It will sync later.')}resetCreate();showView('home')}catch(err){console.error(err);state.tasks=state.tasks.filter(x=>x.id!==task.id);state.occ=state.occ.filter(x=>x.task_id!==task.id);state.subs=state.subs.filter(x=>x.task_id!==task.id);state.milestones=state.milestones.filter(x=>x.task_id!==task.id);toast('Could not create the plan. Try again.')}finally{busy(false);buttonBusy(btn,false)}};
-$('evalForm').onsubmit=async e=>{e.preventDefault();const btn=$('evalSubmit'),payload={user_id:state.user.id,evaluation_date:today(),mood:Math.max(1,Math.min(5,+$('mood').value||1)),focus:Math.max(1,Math.min(5,+$('focus').value||1)),energy:Math.max(1,Math.min(5,+$('energy').value||1)),reflection:$('reflection').value.trim()||null};buttonBusy(btn,true,'Saving…');busy(true,'Saving your reflection…');try{if(navigator.onLine){const {data,error}=await supabase.from('lunar_evaluations').upsert(payload).select().single();if(error)throw error;state.evals=[data,...state.evals.filter(x=>x.evaluation_date!==today())]}else{state.evals=[payload,...state.evals.filter(x=>x.evaluation_date!==today())];await queueOp({type:'evaluation',payload})}saveCache();$('reflection').value='';toast('Evaluation saved');renderEvaluations()}catch{toast('Could not save evaluation')}finally{busy(false);buttonBusy(btn,false)}};
-function renderEvaluations(){const list=[...state.evals].sort((a,b)=>b.evaluation_date.localeCompare(a.evaluation_date)).slice(0,8);$('reflectionList').innerHTML=list.length?list.map(e=>`<div class="reflection"><div class="reflection-head"><span>${fmtDate(e.evaluation_date)}</span><span>Mood ${e.mood} · Focus ${e.focus} · Energy ${e.energy}</span></div>${e.reflection?`<p>${esc(e.reflection)}</p>`:''}</div>`).join(''):`<div class="empty">No reflections yet. Your first one can be today.</div>`}
-function renderCalendar(){const y=state.month.getFullYear(),m=state.month.getMonth();$('calTitle').textContent=new Date(y,m,1).toLocaleDateString(undefined,{month:'long',year:'numeric'});const first=new Date(y,m,1),last=new Date(y,m+1,0),offset=(first.getDay()+(state.settings.week_starts==='monday'?6:0))%7;let html=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(x=>`<div class="cal-weekday">${x}</div>`).join('');if(state.settings.week_starts==='sunday')html=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(x=>`<div class="cal-weekday">${x}</div>`).join('');const prevDays=new Date(y,m,0).getDate();for(let i=0;i<offset;i++){const n=prevDays-offset+i+1;html+=`<div class="cal-day muted-day"><span class="cal-num">${n}</span></div>`}for(let d=1;d<=last.getDate();d++){const ds=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`,os=state.occ.filter(o=>o.scheduled_date===ds),dots=os.slice(0,4).map(o=>`<i class="cal-dot ${o.status}"></i>`).join('');html+=`<button class="cal-day ${ds===today()?'today':''}" data-date="${ds}"><span class="cal-num">${d}</span><span class="cal-dot-row">${dots}</span></button>`}$('calendarGrid').innerHTML=html;document.querySelectorAll('[data-date]').forEach(b=>b.onclick=()=>openDay(b.dataset.date))}
-function openDay(ds){const os=state.occ.filter(o=>o.scheduled_date===ds);openModal(`<div class="modal-head"><div><div class="eyebrow">${fmtDate(ds)}</div><h2>${os.length?`${os.length} scheduled action${os.length===1?'':'s'}`:'A quiet day'}</h2></div><button class="modal-close" data-close>×</button></div>${os.length?os.map(o=>taskCard(getTask(o.task_id)||{title:'Task',priority:'medium',task_type:'one_time'},o)).join(''):`<div class="empty">Nothing scheduled for this day.</div>`}`);bindTaskActions()}
-function renderInsights(){const s=overallStats(),totalTime=state.occ.reduce((a,o)=>a+(+o.actual_minutes||0),0);const goals=state.tasks.filter(t=>t.task_type==='goal').length;$('metricGrid').innerHTML=`<div class="card metric"><div class="stat-label">Completion rate</div><strong>${s.rate}%</strong></div><div class="card metric"><div class="stat-label">Longest streak</div><strong>${bestStreak()} days</strong></div><div class="card metric"><div class="stat-label">Goals created</div><strong>${goals}</strong></div><div class="card metric"><div class="stat-label">Time invested</div><strong>${totalTime?Math.floor(totalTime/60)+'h '+totalTime%60+'m':'—'}</strong></div>`;const days=[];for(let i=6;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);const ds=d.toISOString().slice(0,10),os=state.occ.filter(o=>o.scheduled_date===ds),done=os.filter(o=>o.status==='completed').length;days.push({ds,done,total:os.length})}const max=Math.max(1,...days.map(x=>x.total));$('weekBars').innerHTML=days.map(x=>`<div class="bar-col"><div class="bar" style="height:${Math.max(3,x.done/max*100)}%"></div><span class="bar-label">${new Date(x.ds+'T12:00:00').toLocaleDateString(undefined,{weekday:'short'}).slice(0,3)}</span></div>`).join('');const avg=days.reduce((a,x)=>a+(x.total?x.done/x.total:0),0)/7;$('insightText').innerHTML=avg>=.8?`<strong>You're building consistency.</strong><p class="muted">Your last seven days average ${Math.round(avg*100)}% completion. Protect the routines that are working.</p>`:avg>=.5?`<strong>You're moving.</strong><p class="muted">Your last seven days average ${Math.round(avg*100)}% completion. Try making one recurring action easier to start.</p>`:`<strong>Reduce the friction.</strong><p class="muted">Your recent completion is ${Math.round(avg*100)}%. Smaller scheduled actions can make consistency easier.</p>`}
-function renderHistory(){const groups={};state.occ.filter(o=>o.scheduled_date<=today()).sort((a,b)=>b.scheduled_date.localeCompare(a.scheduled_date)).forEach(o=>(groups[o.scheduled_date]??=[]).push(o));const dates=Object.keys(groups).slice(0,30);$('historyList').innerHTML=dates.length?dates.map(ds=>`<div class="history-day"><div class="history-date">${dayLabel(ds)}</div>${groups[ds].map(o=>{const t=getTask(o.task_id)||{title:'Task'};return `<div class="history-item"><span class="history-state ${o.status==='missed'?'missed':''}">${o.status==='completed'?'✓':o.status==='skipped'?'–':'!'}</span><span style="flex:1">${esc(t.title)}</span><span class="muted">${esc(o.status)}</span></div>`}).join('')}</div>`).join(''):`<div class="empty">Your history will appear here as you work.</div>`}
-function renderProfile(){const p=state.user?.created_at;$('profileName').textContent=state.user?.username||state.user?.user_metadata?.username||'Lunar user';$('profileSince').textContent=p?`Member since ${new Date(p).toLocaleDateString()}`:'';const s=overallStats();$('profileStats').textContent=`${s.done} completed · ${s.streak} day streak · ${s.rate}% consistency`;applyTheme();$('themeSelect').value=state.settings.theme;$('weekStart').value=state.settings.week_starts;setSwitch($('notificationToggle'),state.settings.notifications_enabled);setSwitch($('summaryToggle'),state.settings.daily_summary)}
-function setSwitch(b,on){b.classList.toggle('on',!!on);b.setAttribute('aria-checked',String(!!on))}
-async function saveSettings(patch){Object.assign(state.settings,patch);applyTheme();saveCache();if(navigator.onLine){const {error}=await supabase.from('lunar_settings').upsert({user_id:state.user.id,...state.settings});if(error)toast('Saved locally; sync will retry')}else await queueOp({type:'settings',payload:{user_id:state.user.id,...state.settings}});renderProfile()}
-$('themeSelect').onchange=()=>saveSettings({theme:$('themeSelect').value});$('weekStart').onchange=()=>saveSettings({week_starts:$('weekStart').value});$('notificationToggle').onclick=async()=>{if(!state.settings.notifications_enabled){if(!('Notification'in window))return toast('Notifications are not supported here');const p=await Notification.requestPermission();if(p!=='granted')return toast('Notification permission was not granted')}saveSettings({notifications_enabled:!state.settings.notifications_enabled})};$('summaryToggle').onclick=()=>saveSettings({daily_summary:!state.settings.daily_summary});
-$('exportData').onclick=()=>{const data={exported_at:new Date().toISOString(),profile:{username:state.user?.username},tasks:state.tasks,occurrences:state.occ,subtasks:state.subs,milestones:state.milestones,evaluations:state.evals,categories:state.categories};const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`lunar-export-${today()}.json`;a.click();URL.revokeObjectURL(a.href);toast('Your data is ready')};
-let deferredInstall=null;window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredInstall=e});$('installApp').onclick=async()=>{if(deferredInstall){deferredInstall.prompt();await deferredInstall.userChoice;deferredInstall=null}else toast('Use your browser menu to install Lunar as an app')};
-$('quickSearch').onclick=()=>{showView('tasks');setTimeout(()=>$('taskSearch').focus(),50)};$('taskSearch').oninput=renderTasks;$('taskFilter').onchange=renderTasks;$('taskSort').onchange=renderTasks;$('prevMonth').onclick=()=>{state.month.setMonth(state.month.getMonth()-1);renderCalendar()};$('nextMonth').onclick=()=>{state.month.setMonth(state.month.getMonth()+1);renderCalendar()};
-$('authForm').onsubmit=async e=>{e.preventDefault();if(authBusy)return;const errorBox=$('authError'),submit=$('authSubmit');errorBox.textContent='';const u=$('username').value.trim().toLowerCase(),p=$('password').value;if(!/^[a-z0-9_]{3,24}$/.test(u)){errorBox.textContent='Use 3-24 lowercase letters, numbers, or underscores.';return}if(p.length<8){errorBox.textContent='Password must be at least 8 characters.';return}authBusy=true;buttonBusy(submit,true,signup?'Creating account…':'Signing in…');try{const {data,error}=await supabase.functions.invoke('lunar-auth',{body:{action:signup?'signup':'login',username:u,password:p}});if(error){let msg='The sign-in service is unavailable right now.';try{const body=await error.context?.json?.();if(body?.error)msg=body.error}catch{}errorBox.textContent=msg;return}if(data?.error){errorBox.textContent=data.error;return}const {error:setError}=await supabase.auth.setSession(data.session);if(setError)throw setError;$('password').value='';signup=false;await init()}catch(err){console.error(err);errorBox.textContent=err?.message||'Could not connect. Please try again.'}finally{authBusy=false;buttonBusy(submit,false)}};
-$('toggleAuth').onclick=()=>{signup=!signup;$('authError').textContent='';$('password').value='';$('authTitle').textContent=signup?'Create your Lunar account.':'Welcome back.';$('authSubtitle').textContent=signup?'Choose a username and password.':'Sign in and keep moving.';$('authSubmit').textContent=signup?'Create account':'Sign in';$('toggleAuth').textContent=signup?'I already have an account':'Create account';$('password').autocomplete=signup?'new-password':'current-password'};
-async function loadData(){if(!state.user)return;updateMissed();if(!navigator.onLine){const c=readCache();if(c){Object.assign(state,c);applyTheme();renderAll();renderEvaluations();renderProfile();return}return}busy(true,'Loading your Lunar…');try{const [tasks,occ,subs,milestones,evals,cats,settings]=await Promise.all([supabase.from('lunar_tasks').select('*').order('created_at',{ascending:false}),supabase.from('lunar_task_occurrences').select('*').order('scheduled_date',{ascending:false}),supabase.from('lunar_subtasks').select('*').order('position'),supabase.from('lunar_milestones').select('*').order('position'),supabase.from('lunar_evaluations').select('*').order('evaluation_date',{ascending:false}).limit(60),supabase.from('lunar_categories').select('*').order('name'),supabase.from('lunar_settings').select('*').eq('user_id',state.user.id).maybeSingle()]);if(tasks.error||occ.error)throw tasks.error||occ.error;state.tasks=tasks.data||[];state.occ=occ.data||[];state.subs=subs.data||[];state.milestones=milestones.data||[];state.evals=evals.data||[];state.categories=cats.data||[];if(settings.data)state.settings=settings.data;else{const r=await supabase.from('lunar_settings').insert({user_id:state.user.id}).select().single();if(!r.error)state.settings=r.data}updateMissed();saveCache();renderAll();renderEvaluations();renderProfile();await syncQueue()}catch(err){console.error(err);const c=readCache();if(c){Object.assign(state,c);renderAll();renderEvaluations();renderProfile();toast('Showing your saved offline data')}else toast('Could not load your progress')}finally{busy(false)}}
-async function init(){const {data:{session}}=await supabase.auth.getSession();if(!session){$('auth').classList.remove('hidden');$('app').classList.add('hidden');return}$('auth').classList.add('hidden');$('app').classList.remove('hidden');state.user=session.user;state.user.username=session.user.user_metadata?.username||state.user.username;const {data:p}=await supabase.from('lunar_profiles').select('username,created_at').eq('id',session.user.id).maybeSingle();if(p)Object.assign(state.user,p);applyTheme();$('start').value=today();$('end').value=today();const h=location.hash.slice(1);showView(['home','tasks','create','calendar','evaluate','insights','history','profile'].includes(h)?h:'home');await loadData()}
-document.querySelectorAll('.nav-item[data-view]').forEach(b=>b.onclick=()=>showView(b.dataset.view));$('logout').onclick=async()=>{busy(true,'Signing out…');await supabase.auth.signOut();localStorage.removeItem(localKey());location.hash='';location.reload()};window.addEventListener('online',()=>{state.online=true;syncQueue();loadData()});window.addEventListener('offline',()=>{state.online=false;toast('Offline mode. Your changes stay on this device.')});if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js',{scope:'./'}).catch(()=>{});supabase.auth.onAuthStateChange((_event,session)=>{if(session&&!state.user)init()});matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change',applyTheme);init();
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.57.0';
+
+const SUPABASE_URL = 'https://dpiwdhtbhwjgatvcfkcb.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_PSZnTEo74jObih_6TTpXVQ_tJwzTnXY';
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
+  auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+});
+
+const $ = (id) => document.getElementById(id);
+const today = () => new Date().toISOString().slice(0, 10);
+const uuid = () => crypto.randomUUID();
+const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (c) => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#039;' }[c]));
+const dateObj = (value) => new Date(`${value}T12:00:00`);
+const fmtDate = (value, opts = { month:'short', day:'numeric', year:'numeric' }) => value ? dateObj(value).toLocaleDateString(undefined, opts) : 'No date';
+const dayName = (value) => dateObj(value).toLocaleDateString(undefined, { weekday:'short', month:'short', day:'numeric' });
+const isoDate = (d) => d.toISOString().slice(0, 10);
+
+let state = {
+  user: null,
+  profile: null,
+  settings: { theme:'system', notifications_enabled:false, daily_summary:true, week_starts:'monday' },
+  tasks: [], occurrences: [], subtasks: [], milestones: [], evaluations: [], categories: [],
+  month: new Date(),
+  online: navigator.onLine,
+  busy: false
+};
+
+function setLoading(show, text='Loading Lunar') {
+  const el = $('loading');
+  if (!el) return;
+  if ($('loadingText')) $('loadingText').textContent = text;
+  el.classList.toggle('hidden', !show);
+}
+
+function toast(message, type='normal') {
+  const el = $('toast');
+  if (!el) return;
+  el.textContent = message;
+  el.dataset.type = type;
+  el.classList.add('show');
+  clearTimeout(window.__toastTimer);
+  window.__toastTimer = setTimeout(() => el.classList.remove('show'), 2800);
+}
+
+function setError(message='') {
+  const el = $('authError');
+  if (el) el.textContent = message;
+}
+
+function applyTheme() {
+  const theme = state.settings.theme || 'system';
+  const dark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  document.documentElement.classList.toggle('dark', dark);
+}
+
+function displayName() {
+  return state.profile?.display_name || state.profile?.username || state.user?.user_metadata?.username || state.user?.email?.split('@')[0] || 'there';
+}
+
+function priorityRank(value) { return value === 'high' ? 3 : value === 'medium' ? 2 : 1; }
+function typeLabel(value) { return value === 'goal' ? 'Goal' : value === 'recurring' ? 'Routine' : 'Task'; }
+function getTask(id) { return state.tasks.find(t => t.id === id); }
+function getOccurrences(taskId) { return state.occurrences.filter(o => o.task_id === taskId); }
+function getTodayOccurrences() { return state.occurrences.filter(o => o.scheduled_date === today()); }
+
+function cacheKey() { return `lunar-cache-${state.user?.id || 'guest'}`; }
+function saveCache() {
+  if (!state.user) return;
+  try { localStorage.setItem(cacheKey(), JSON.stringify({ tasks:state.tasks, occurrences:state.occurrences, subtasks:state.subtasks, milestones:state.milestones, evaluations:state.evaluations, categories:state.categories, settings:state.settings })); } catch {}
+}
+function loadCache() {
+  try { return JSON.parse(localStorage.getItem(cacheKey()) || 'null'); } catch { return null; }
+}
+
+async function query(table, options = {}) {
+  let q = supabase.from(table).select(options.select || '*');
+  if (options.eq) for (const [key, value] of Object.entries(options.eq)) q = q.eq(key, value);
+  if (options.order) q = q.order(options.order.column, { ascending: options.order.ascending !== false });
+  if (options.limit) q = q.limit(options.limit);
+  const { data, error } = await q;
+  if (error) throw error;
+  return data || [];
+}
+
+async function loadData() {
+  if (!state.user) return;
+  setLoading(true, 'Loading your progress');
+  try {
+    const uid = state.user.id;
+    const [profile, settings, tasks, occurrences, subtasks, milestones, evaluations, categories] = await Promise.all([
+      query('lunar_profiles', { eq:{id:uid}, limit:1 }),
+      query('lunar_settings', { eq:{user_id:uid}, limit:1 }),
+      query('lunar_tasks', { eq:{user_id:uid}, order:{column:'created_at', ascending:false} }),
+      query('lunar_task_occurrences', { eq:{user_id:uid}, order:{column:'scheduled_date', ascending:true} }),
+      query('lunar_subtasks', { eq:{user_id:uid}, order:{column:'position', ascending:true} }),
+      query('lunar_milestones', { eq:{user_id:uid}, order:{column:'position', ascending:true} }),
+      query('lunar_evaluations', { eq:{user_id:uid}, order:{column:'evaluation_date', ascending:false} }),
+      query('lunar_categories', { eq:{user_id:uid}, order:{column:'created_at', ascending:true} })
+    ]);
+    state.profile = profile[0] || null;
+    state.settings = { ...state.settings, ...(settings[0] || {}) };
+    state.tasks = tasks;
+    state.occurrences = occurrences;
+    state.subtasks = subtasks;
+    state.milestones = milestones;
+    state.evaluations = evaluations;
+    state.categories = categories;
+    markMissedLocally();
+    saveCache();
+    applyTheme();
+    renderEverything();
+  } catch (error) {
+    console.error(error);
+    const cached = loadCache();
+    if (cached) {
+      Object.assign(state, cached, { user:state.user, profile:state.profile });
+      markMissedLocally();
+      applyTheme();
+      renderEverything();
+      toast('You are offline. Showing your saved copy.', 'warn');
+    } else {
+      toast(error.message || 'Could not load Lunar.', 'error');
+      showApp(false);
+    }
+  } finally {
+    setLoading(false);
+  }
+}
+
+function markMissedLocally() {
+  const now = today();
+  for (const o of state.occurrences) if (o.status === 'upcoming' && o.scheduled_date < now) o.status = 'missed';
+}
+
+function showApp(loggedIn) {
+  $('auth')?.classList.toggle('hidden', loggedIn);
+  $('app')?.classList.toggle('hidden', !loggedIn);
+  if (loggedIn) renderEverything();
+}
+
+function stats() {
+  const past = state.occurrences.filter(o => o.scheduled_date <= today());
+  const done = past.filter(o => o.status === 'completed').length;
+  const missed = past.filter(o => o.status === 'missed').length;
+  const rate = past.length ? Math.round(done / past.length * 100) : 0;
+  return { done, missed, total:past.length, rate, streak:currentStreak() };
+}
+
+function currentStreak() {
+  const completed = new Set(state.occurrences.filter(o => o.status === 'completed').map(o => o.scheduled_date));
+  let cursor = dateObj(today());
+  let streak = 0;
+  while (completed.has(isoDate(cursor))) {
+    streak++;
+    cursor.setDate(cursor.getDate() - 1);
+  }
+  return streak;
+}
+
+function bestStreak() {
+  const days = [...new Set(state.occurrences.filter(o => o.status === 'completed').map(o => o.scheduled_date))].sort();
+  let best = 0, run = 0, previous = null;
+  for (const day of days) {
+    if (previous && (dateObj(day) - dateObj(previous)) === 86400000) run++;
+    else run = 1;
+    best = Math.max(best, run);
+    previous = day;
+  }
+  return best;
+}
+
+function progress(task) {
+  const list = getOccurrences(task.id);
+  const done = list.filter(o => o.status === 'completed').length;
+  return { done, total:list.length, pct:list.length ? Math.round(done/list.length*100) : 0 };
+}
+
+function renderEverything() {
+  renderHeader();
+  renderHome();
+  renderTasks();
+  renderCategories();
+  renderCalendar();
+  renderInsights();
+  renderHistory();
+  renderProfile();
+  renderCreateForm();
+}
+
+function renderHeader() {
+  if ($('topGreeting')) $('topGreeting').textContent = `Good to see you, ${displayName()}`;
+  if ($('topDate')) $('topDate').textContent = new Date().toLocaleDateString(undefined, { weekday:'short', month:'short', day:'numeric' });
+  if ($('avatar')) $('avatar').textContent = displayName().slice(0,1).toUpperCase();
+  if ($('offline')) $('offline').classList.toggle('hidden', state.online);
+}
+
+function taskRow(task, occurrence) {
+  const done = occurrence.status === 'completed';
+  return `<div class="task-row ${done ? 'is-done':''}">
+    <button class="check ${done ? 'done':''}" data-complete="${occurrence.id}" aria-label="${done?'Completed':'Complete'}"></button>
+    <button class="task-main" data-open-task="${task.id}">
+      <strong>${esc(task.title)}</strong>
+      <span>${dayName(occurrence.scheduled_date)}${occurrence.scheduled_time ? ` · ${esc(String(occurrence.scheduled_time).slice(0,5))}`:''} · ${typeLabel(task.task_type)}</span>
+    </button>
+    <span class="priority ${esc(task.priority)}">${esc(task.priority)}</span>
+    <button class="icon-mini" data-menu="${task.id}" aria-label="Task menu">•••</button>
+  </div>`;
+}
+
+function renderHome() {
+  const s = stats();
+  const todayItems = getTodayOccurrences().sort((a,b) => String(a.scheduled_time||'').localeCompare(String(b.scheduled_time||'')));
+  const doneToday = todayItems.filter(o => o.status === 'completed').length;
+  if ($('homeTitle')) $('homeTitle').textContent = `Build the day, ${displayName()}.`;
+  if ($('stats')) $('stats').innerHTML = [
+    ['Today', `${doneToday}/${todayItems.length}`, 'actions completed', todayItems.length ? Math.round(doneToday/todayItems.length*100) : 0],
+    ['Current streak', `${s.streak} days`, `Best is ${bestStreak()} days`, null],
+    ['Consistency', `${s.rate}%`, `${s.done} completed · ${s.missed} missed`, null],
+    ['Active plans', state.tasks.filter(t => t.status === 'active').length, `${state.tasks.filter(t=>t.task_type==='goal'&&t.status==='active').length} active goals`, null]
+  ].map(([label,value,foot,pct]) => `<article class="stat-card"><span>${label}</span><strong>${value}</strong>${pct !== null ? `<i class="progress"><b style="width:${pct}%"></b></i>`:''}<small>${foot}</small></article>`).join('');
+  if ($('todayCount')) $('todayCount').textContent = `${doneToday}/${todayItems.length}`;
+  if ($('todayTasks')) $('todayTasks').innerHTML = todayItems.length ? todayItems.map(o => taskRow(getTask(o.task_id) || {title:'Task', priority:'medium', task_type:'one_time'}, o)).join('') : emptyState('Your day is clear.', 'Create one useful action and start small.', 'Create a task');
+  const goals = state.tasks.filter(t => t.task_type === 'goal' && t.status === 'active').slice(0,3);
+  if ($('goalPreview')) $('goalPreview').innerHTML = goals.length ? goals.map(t => { const p=progress(t); return `<article class="plan-card"><div><span class="eyebrow">Goal</span><h3>${esc(t.title)}</h3><p>${t.end_date ? `Ends ${fmtDate(t.end_date)}` : 'Ongoing'}</p></div><strong>${p.pct}%</strong><i class="progress"><b style="width:${p.pct}%"></b></i><small>${p.done} of ${p.total} actions complete</small></article>`; }).join('') : emptyState('No active goals yet.', 'Give something important a finish line.', 'Create a goal');
+  bindDynamic();
+}
+
+function renderTasks() {
+  const search = ($('taskSearch')?.value || '').trim().toLowerCase();
+  const filter = $('taskFilter')?.value || 'all';
+  const sort = $('taskSort')?.value || 'new';
+  let tasks = [...state.tasks];
+  if (search) tasks = tasks.filter(t => `${t.title} ${t.description||''} ${(t.tags||[]).join(' ')}`.toLowerCase().includes(search));
+  if (['active','paused','archived'].includes(filter)) tasks = tasks.filter(t => t.status === filter);
+  if (['goal','recurring'].includes(filter)) tasks = tasks.filter(t => t.task_type === filter);
+  if (filter === 'completed') tasks = tasks.filter(t => progress(t).total && progress(t).pct === 100);
+  if (sort === 'priority') tasks.sort((a,b) => priorityRank(b.priority)-priorityRank(a.priority));
+  if (sort === 'title') tasks.sort((a,b) => a.title.localeCompare(b.title));
+  if (sort === 'start') tasks.sort((a,b) => String(a.start_date).localeCompare(String(b.start_date)));
+  if ($('allTasks')) $('allTasks').innerHTML = tasks.length ? tasks.map(t => {
+    const p=progress(t); const tags=(t.tags||[]).map(x=>`<span class="tag">${esc(x)}</span>`).join('');
+    return `<article class="task-card"><div class="task-card-top"><div><span class="eyebrow">${typeLabel(t.task_type)}</span><h3>${esc(t.title)}</h3><p>${t.start_date ? fmtDate(t.start_date) : ''}${t.end_date ? ` → ${fmtDate(t.end_date)}`:''}</p>${tags}</div><span class="priority ${esc(t.priority)}">${esc(t.priority)}</span></div>${p.total ? `<div class="progress"><b style="width:${p.pct}%"></b></div><div class="task-card-foot"><small>${p.done}/${p.total} completed</small><span>${p.pct}%</span></div>`:''}<div class="card-actions"><button class="text-btn" data-open-task="${t.id}">Open</button><button class="text-btn" data-menu="${t.id}">More</button></div></article>`;
+  }).join('') : emptyState('Nothing here yet.', 'Create a plan and Lunar will turn it into daily actions.', 'Create something');
+  bindDynamic();
+}
+
+function emptyState(title, text, action) { return `<div class="empty"><div class="empty-mark">✦</div><strong>${esc(title)}</strong><p>${esc(text)}</p>${action ? `<button class="btn primary" data-view="create">${esc(action)}</button>`:''}</div>`; }
+
+function renderCategories() {
+  if ($('category')) $('category').innerHTML = `<option value="">No category</option>${state.categories.map(c => `<option value="${c.id}">${esc(c.name)}</option>`).join('')}<option value="__new">＋ New category</option>`;
+}
+
+function renderCreateForm() {
+  if ($('startDate') && !$('startDate').value) $('startDate').value = today();
+  if ($('endDate') && !$('endDate').value) $('endDate').value = today();
+  if ($('recurrenceDays')) $('recurrenceDays').querySelectorAll('.day-chip').forEach(b => b.classList.toggle('active', b.dataset.day === String(new Date().getDay())));
+  renderCategories();
+}
+
+function renderCalendar() {
+  const root = $('calendarGrid'); if (!root) return;
+  const month = state.month;
+  const year = month.getFullYear(), m = month.getMonth();
+  const first = new Date(year,m,1); const offset = (first.getDay()+6)%7;
+  const days = new Date(year,m+1,0).getDate();
+  const previous = new Date(year,m,0).getDate();
+  const cells = [];
+  for (let i=0;i<offset;i++) cells.push({day:previous-offset+i+1, muted:true, date:isoDate(new Date(year,m-1,previous-offset+i+1))});
+  for (let d=1;d<=days;d++) cells.push({day:d, date:isoDate(new Date(year,m,d))});
+  while (cells.length<42) { const d=cells.length-offset-days+1; cells.push({day:d, muted:true, date:isoDate(new Date(year,m+1,d))}); }
+  if ($('calendarTitle')) $('calendarTitle').textContent = month.toLocaleDateString(undefined,{month:'long',year:'numeric'});
+  root.innerHTML = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(x=>`<span class="cal-week">${x}</span>`).join('') + cells.map(c => {
+    const items=state.occurrences.filter(o=>o.scheduled_date===c.date);
+    const dots=items.slice(0,4).map(o=>`<i class="cal-dot ${o.status}"></i>`).join('');
+    return `<button class="cal-day ${c.muted?'muted':''} ${c.date===today()?'today':''}" data-cal-date="${c.date}"><span>${c.day}</span><div>${dots}</div></button>`;
+  }).join('');
+}
+
+function renderInsights() {
+  const s=stats();
+  if ($('insightStats')) $('insightStats').innerHTML = `<div class="metric"><span>Completion</span><strong>${s.rate}%</strong></div><div class="metric"><span>Best streak</span><strong>${bestStreak()}d</strong></div><div class="metric"><span>Completed</span><strong>${s.done}</strong></div><div class="metric"><span>Missed</span><strong>${s.missed}</strong></div>`;
+  if ($('weeklyBars')) {
+    const now=dateObj(today()); const start=new Date(now); start.setDate(now.getDate()-6);
+    const bars=[]; for(let i=0;i<7;i++){const d=new Date(start);d.setDate(start.getDate()+i);const key=isoDate(d);const total=state.occurrences.filter(o=>o.scheduled_date===key).length;const done=state.occurrences.filter(o=>o.scheduled_date===key&&o.status==='completed').length;bars.push(`<div class="bar-col"><span>${done}</span><i style="height:${Math.max(4,total?done/total*100:0)}%"></i><small>${d.toLocaleDateString(undefined,{weekday:'narrow'})}</small></div>`)}
+    $('weeklyBars').innerHTML=bars.join('');
+  }
+}
+
+function renderHistory() {
+  if (!$('historyList')) return;
+  const groups={};
+  [...state.occurrences].filter(o=>o.scheduled_date<=today()).sort((a,b)=>b.scheduled_date.localeCompare(a.scheduled_date)).forEach(o=>(groups[o.scheduled_date] ||= []).push(o));
+  const dates=Object.keys(groups).slice(0,14);
+  $('historyList').innerHTML=dates.length ? dates.map(d=>`<section class="history-day"><strong>${dayName(d)}</strong>${groups[d].map(o=>`<div class="history-item"><span class="history-state ${o.status}">${o.status==='completed'?'✓':o.status==='missed'?'!':'•'}</span><span>${esc(getTask(o.task_id)?.title||'Task')}</span><small>${esc(o.status)}</small></div>`).join('')}</section>`).join('') : emptyState('No history yet.', 'Your completed actions will appear here.');
+}
+
+function renderProfile() {
+  if ($('profileName')) $('profileName').value = state.profile?.display_name || '';
+  if ($('profileUsername')) $('profileUsername').value = state.profile?.username || '';
+  if ($('themeSelect')) $('themeSelect').value = state.settings.theme || 'system';
+  if ($('dailySummary')) $('dailySummary').classList.toggle('on', !!state.settings.daily_summary);
+  if ($('notifications')) $('notifications').classList.toggle('on', !!state.settings.notifications_enabled);
+  if ($('profileEmail')) $('profileEmail').textContent = state.user?.email || '';
+}
+
+function openView(name) {
+  const valid=['home','tasks','create','calendar','insights','history','profile'];
+  if (!valid.includes(name)) name='home';
+  document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === `view-${name}`));
+  document.querySelectorAll('[data-view]').forEach(b => b.classList.toggle('active', b.dataset.view === name));
+  history.replaceState(null,'',`#${name}`);
+  if(name==='calendar') renderCalendar();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+window.showView = openView;
+
+async function signIn(event) {
+  event.preventDefault(); if (state.busy) return;
+  state.busy=true; setError(''); const email=$('authEmail').value.trim(); const password=$('authPassword').value;
+  try { const {error}=await supabase.auth.signInWithPassword({email,password}); if(error) throw error; } catch(e) { setError(e.message || 'Could not sign in.'); toast(e.message || 'Sign in failed.','error'); } finally { state.busy=false; }
+}
+
+async function signUp(event) {
+  event.preventDefault(); if (state.busy) return;
+  state.busy=true; setError(''); const email=$('authEmail').value.trim(); const password=$('authPassword').value; const username=$('authUsername').value.trim();
+  if(username.length<2){setError('Choose a username with at least 2 characters.');state.busy=false;return;}
+  try {
+    const {data,error}=await supabase.auth.signUp({email,password,options:{data:{username}}});
+    if(error) throw error;
+    if(data.session) { await ensureProfile(data.user,username); toast('Welcome to Lunar.'); }
+    else { setError('Account created. Check your email to confirm it, then sign in.'); toast('Check your email.'); }
+  } catch(e) { setError(e.message || 'Could not create account.'); toast(e.message || 'Sign up failed.','error'); } finally { state.busy=false; }
+}
+
+async function ensureProfile(user, username) {
+  if(!user) return;
+  const {data:existing}=await supabase.from('lunar_profiles').select('*').eq('id',user.id).maybeSingle();
+  if(!existing){
+    await supabase.from('lunar_profiles').insert({id:user.id,username:username || user.user_metadata?.username || 'lunar',display_name:username || null,timezone:Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'});
+  }
+  const {data:settings}=await supabase.from('lunar_settings').select('*').eq('user_id',user.id).maybeSingle();
+  if(!settings) await supabase.from('lunar_settings').insert({user_id:user.id,theme:'system',notifications_enabled:false,daily_summary:true,week_starts:'monday'});
+}
+
+async function signOut() { await supabase.auth.signOut(); state.user=null; showApp(false); openView('home'); }
+
+async function createCategory(name) {
+  const clean=name.trim(); if(!clean || !state.user) return null;
+  const row={id:uuid(),user_id:state.user.id,name:clean,icon:'•',created_at:new Date().toISOString()};
+  const {error}=await supabase.from('lunar_categories').insert(row); if(error) throw error; state.categories.push(row); renderCategories(); return row.id;
+}
+
+function recurrenceDates(task) {
+  const start=dateObj(task.start_date); const end=dateObj(task.end_date || task.start_date); const dates=[]; const rule=task.recurrence_rule || {};
+  for(let d=new Date(start);d<=end;d.setDate(d.getDate()+1)){
+    const weekday=d.getDay();
+    if(task.task_type==='recurring') { const selected=Array.isArray(rule.days) ? rule.days.map(Number) : [weekday]; if(selected.includes(weekday)) dates.push(isoDate(d)); }
+    else dates.push(isoDate(d));
+  }
+  return dates;
+}
+
+async function createTask(event) {
+  event.preventDefault(); if(!state.user || state.busy) return;
+  const title=$('taskTitle').value.trim(); if(!title){toast('Give the plan a title.','error');return;}
+  state.busy=true; setLoading(true,'Building your plan');
+  try {
+    let categoryId=$('category').value || null;
+    if(categoryId==='__new'){ const name=prompt('Category name'); categoryId=name ? await createCategory(name) : null; }
+    const type=document.querySelector('input[name="taskType"]:checked')?.value || 'goal';
+    const start=$('startDate').value || today(); const end=type==='one_time' ? start : ($('endDate').value || start);
+    const rule=type==='recurring' ? {days:[...document.querySelectorAll('.day-chip.active')].map(b=>Number(b.dataset.day))} : null;
+    const tags=$('tags').value.split(',').map(x=>x.trim()).filter(Boolean).slice(0,8);
+    const task={id:uuid(),user_id:state.user.id,category_id:categoryId,title,description:$('taskDescription').value.trim()||null,task_type:type,priority:$('priority').value,recurrence_rule:rule,start_date:start,end_date:end,reminder_time:$('reminderTime').value||null,status:'active',created_at:new Date().toISOString(),updated_at:new Date().toISOString(),estimated_minutes:Number($('estimatedMinutes').value)||null,tags};
+    const {error}=await supabase.from('lunar_tasks').insert(task); if(error) throw error;
+    const dates=recurrenceDates(task); const rows=dates.map((date,index)=>({id:uuid(),task_id:task.id,user_id:state.user.id,scheduled_date:date,scheduled_time:task.reminder_time,status:'upcoming',completed_at:null,duration_minutes:null,notes:null,created_at:new Date().toISOString(),updated_at:new Date().toISOString(),skipped_at:null,actual_minutes:null,estimated_minutes:task.estimated_minutes,occurrence_key:`${task.id}:${date}`}));
+    if(rows.length){const {error:occError}=await supabase.from('lunar_task_occurrences').insert(rows);if(occError)throw occError;}
+    const subRows=[...document.querySelectorAll('.subtask-input')].map((input,i)=>input.value.trim()).filter(Boolean).map((title,i)=>({id:uuid(),task_id:task.id,user_id:state.user.id,title,position:i,completed:false,created_at:new Date().toISOString(),updated_at:new Date().toISOString()}));
+    if(subRows.length) await supabase.from('lunar_subtasks').insert(subRows);
+    state.tasks.unshift(task); state.occurrences.push(...rows); state.subtasks.push(...subRows); saveCache();
+    $('createForm').reset(); $('startDate').value=today(); $('endDate').value=today(); document.querySelector('[data-type="goal"]')?.click();
+    toast('Plan created. Keep going.'); renderEverything(); openView('home');
+  } catch(e) { console.error(e); toast(e.message || 'Could not create the plan.','error'); }
+  finally { state.busy=false; setLoading(false); }
+}
+
+async function completeOccurrence(id, button) {
+  const occurrence=state.occurrences.find(o=>o.id===id); if(!occurrence || occurrence.status==='completed') return;
+  occurrence.status='completed'; occurrence.completed_at=new Date().toISOString(); occurrence.updated_at=new Date().toISOString(); saveCache(); renderEverything(); toast('Done. One more step forward.');
+  const {error}=await supabase.from('lunar_task_occurrences').update({status:'completed',completed_at:occurrence.completed_at,updated_at:occurrence.updated_at}).eq('id',id).eq('user_id',state.user.id);
+  if(error){ occurrence.status='upcoming'; occurrence.completed_at=null; saveCache(); renderEverything(); toast('Could not save that change.','error'); }
+}
+
+async function taskAction(id, action) {
+  const task=getTask(id); if(!task) return;
+  closeModal();
+  const next=getOccurrences(id).find(o=>['upcoming','due'].includes(o.status));
+  try {
+    if(action==='complete' && next) await completeOccurrence(next.id);
+    if(action==='skip' && next){ next.status='skipped'; next.skipped_at=new Date().toISOString(); await supabase.from('lunar_task_occurrences').update({status:'skipped',skipped_at:next.skipped_at}).eq('id',next.id).eq('user_id',state.user.id); renderEverything(); toast('Skipped for now.'); }
+    if(action==='pause'||action==='archive'){const status=action==='pause'?(task.status==='paused'?'active':'paused'):(task.status==='archived'?'active':'archived');task.status=status;await supabase.from('lunar_tasks').update({status,updated_at:new Date().toISOString()}).eq('id',id).eq('user_id',state.user.id);renderEverything();toast(status==='paused'?'Plan paused.':status==='archived'?'Plan archived.':'Plan active again.');}
+    if(action==='delete' && confirm(`Delete “${task.title}” and its history?`)){await supabase.from('lunar_task_occurrences').delete().eq('task_id',id).eq('user_id',state.user.id);await supabase.from('lunar_subtasks').delete().eq('task_id',id).eq('user_id',state.user.id);await supabase.from('lunar_tasks').delete().eq('id',id).eq('user_id',state.user.id);state.tasks=state.tasks.filter(t=>t.id!==id);state.occurrences=state.occurrences.filter(o=>o.task_id!==id);renderEverything();toast('Plan deleted.');}
+    if(action==='extend'){const end=dateObj(task.end_date||today());end.setDate(end.getDate()+7);const newEnd=isoDate(end);const extraDates=recurrenceDates({...task,end_date:newEnd}).filter(d=>!getOccurrences(id).some(o=>o.scheduled_date===d));const rows=extraDates.map(d=>({id:uuid(),task_id:id,user_id:state.user.id,scheduled_date:d,scheduled_time:task.reminder_time,status:'upcoming',created_at:new Date().toISOString(),updated_at:new Date().toISOString(),occurrence_key:`${id}:${d}`,completed_at:null,duration_minutes:null,notes:null,skipped_at:null,actual_minutes:null,estimated_minutes:task.estimated_minutes}));task.end_date=newEnd;await supabase.from('lunar_tasks').update({end_date:newEnd,updated_at:new Date().toISOString()}).eq('id',id).eq('user_id',state.user.id);if(rows.length)await supabase.from('lunar_task_occurrences').insert(rows);state.occurrences.push(...rows);renderEverything();toast('Plan extended by 7 days.');}
+  } catch(e){toast(e.message||'Action failed.','error');}
+}
+
+function openTaskMenu(id) {
+  const t=getTask(id); if(!t)return;
+  openModal(`<div class="modal-head"><div><span class="eyebrow">${typeLabel(t.task_type)}</span><h2>${esc(t.title)}</h2></div><button class="icon-btn" data-close>×</button></div><div class="action-list"><button data-action="complete">Complete next action</button><button data-action="skip">Skip next action</button><button data-action="pause">${t.status==='paused'?'Resume':'Pause'} plan</button><button data-action="extend">Extend by 7 days</button><button data-action="archive">${t.status==='archived'?'Restore':'Archive'} plan</button><button class="danger" data-action="delete">Delete plan</button></div>`);
+  document.querySelectorAll('[data-action]').forEach(b=>b.onclick=()=>taskAction(id,b.dataset.action));
+}
+
+function openTaskDetail(id) {
+  const t=getTask(id); if(!t)return; const p=progress(t); const subs=state.subtasks.filter(s=>s.task_id===id);
+  openModal(`<div class="modal-head"><div><span class="eyebrow">${typeLabel(t.task_type)} · ${esc(t.priority)}</span><h2>${esc(t.title)}</h2><p class="modal-muted">${esc(t.description||'No description.')}</p></div><button class="icon-btn" data-close>×</button></div><div class="detail-grid"><div><span>Progress</span><strong>${p.pct}%</strong></div><div><span>Actions</span><strong>${p.done}/${p.total}</strong></div><div><span>Start</span><strong>${fmtDate(t.start_date)}</strong></div><div><span>End</span><strong>${t.end_date?fmtDate(t.end_date):'Ongoing'}</strong></div></div>${subs.length?`<div class="sub-list"><h3>Subtasks</h3>${subs.map(s=>`<div><span class="history-state ${s.completed?'completed':''}">${s.completed?'✓':'•'}</span>${esc(s.title)}</div>`).join('')}</div>`:''}`);
+}
+
+function openModal(html) { $('modalRoot').innerHTML=`<div class="modal-backdrop" data-close><section class="modal" onclick="event.stopPropagation()">${html}</section></div>`; $('modalRoot').querySelector('[data-close]')?.addEventListener('click',closeModal); }
+function closeModal(){if($('modalRoot'))$('modalRoot').innerHTML='';}
+
+async function saveProfile(){if(!state.user)return;const display=$('profileName').value.trim();const username=$('profileUsername').value.trim();if(username.length<2){toast('Username is too short.','error');return;}const {error}=await supabase.from('lunar_profiles').update({display_name:display||null,username,updated_at:new Date().toISOString()}).eq('id',state.user.id);if(error){toast(error.message,'error');return;}state.profile={...state.profile,display_name:display||null,username};renderHeader();toast('Profile saved.');}
+async function saveSettings(){const theme=$('themeSelect').value;const daily=$('dailySummary').classList.contains('on');const notifications=$('notifications').classList.contains('on');const patch={theme,daily_summary:daily,notifications_enabled:notifications,updated_at:new Date().toISOString()};const {error}=await supabase.from('lunar_settings').update(patch).eq('user_id',state.user.id);if(error){toast(error.message,'error');return;}state.settings={...state.settings,...patch};applyTheme();toast('Settings saved.');}
+
+function bindDynamic(){
+  document.querySelectorAll('[data-complete]').forEach(b=>b.onclick=()=>completeOccurrence(b.dataset.complete,b));
+  document.querySelectorAll('[data-open-task]').forEach(b=>b.onclick=()=>openTaskDetail(b.dataset.openTask));
+  document.querySelectorAll('[data-menu]').forEach(b=>b.onclick=()=>openTaskMenu(b.dataset.menu));
+  document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>openView(b.dataset.view));
+}
+
+function bindStatic(){
+  $('authForm')?.addEventListener('submit', e => state.signup ? signUp(e) : signIn(e));
+  $('authSwitch')?.addEventListener('click',()=>{state.signup=!state.signup;$('authSubmit').textContent=state.signup?'Create account':'Sign in';$('authSwitch').textContent=state.signup?'Already have an account? Sign in':'New here? Create an account';$('usernameField').classList.toggle('hidden',!state.signup);setError('');});
+  $('signOut')?.addEventListener('click',signOut);
+  $('createForm')?.addEventListener('submit',createTask);
+  $('taskSearch')?.addEventListener('input',renderTasks);$('taskFilter')?.addEventListener('change',renderTasks);$('taskSort')?.addEventListener('change',renderTasks);
+  document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>openView(b.dataset.view)));
+  document.querySelectorAll('[data-type]').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('[data-type]').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.querySelector(`input[name="taskType"][value="${b.dataset.type}"]`).checked=true;const recurring=b.dataset.type==='recurring';$('recurrenceBox')?.classList.toggle('hidden',!recurring);$('endField')?.classList.toggle('hidden',b.dataset.type==='one_time');}));
+  document.querySelectorAll('.day-chip').forEach(b=>b.addEventListener('click',()=>b.classList.toggle('active')));
+  $('prevMonth')?.addEventListener('click',()=>{state.month.setMonth(state.month.getMonth()-1);renderCalendar();});$('nextMonth')?.addEventListener('click',()=>{state.month.setMonth(state.month.getMonth()+1);renderCalendar();});$('todayMonth')?.addEventListener('click',()=>{state.month=new Date();renderCalendar();});
+  $('themeSelect')?.addEventListener('change',saveSettings);$('saveProfile')?.addEventListener('click',saveProfile);$('saveSettings')?.addEventListener('click',saveSettings);
+  $('notifications')?.addEventListener('click',()=> $('notifications').classList.toggle('on'));$('dailySummary')?.addEventListener('click',()=> $('dailySummary').classList.toggle('on'));
+  $('addSubtask')?.addEventListener('click',()=>{const wrap=$('subtasks');const row=document.createElement('div');row.className='subtask-row';row.innerHTML='<input class="subtask-input field-input" type="text" placeholder="Another small step"><button type="button" class="mini-btn remove-sub">×</button>';row.querySelector('.remove-sub').onclick=()=>row.remove();wrap.appendChild(row);});
+  $('installApp')?.addEventListener('click',installApp);
+  window.addEventListener('online',()=>{state.online=true;renderHeader();toast('Back online.');});window.addEventListener('offline',()=>{state.online=false;renderHeader();toast('Offline mode. Your saved data is still available.','warn');});
+  window.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
+}
+
+let installPrompt=null;
+async function installApp(){if(installPrompt){installPrompt.prompt();await installPrompt.userChoice;installPrompt=null;}else toast('Use your browser menu and choose “Install app”.');}
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();installPrompt=e;});
+
+async function init(){
+  bindStatic();
+  applyTheme();
+  const hash=location.hash.replace('#',''); if(hash)openView(hash);
+  setLoading(true,'Starting Lunar');
+  try {
+    const {data:{session}}=await supabase.auth.getSession();
+    if(session?.user){state.user=session.user;await ensureProfile(session.user,session.user.user_metadata?.username);showApp(true);await loadData();}
+    else showApp(false);
+  } catch(e){console.error(e);showApp(false);toast('Lunar could not start. Refresh and try again.','error');}
+  finally{setLoading(false);}
+  supabase.auth.onAuthStateChange(async (_event,session)=>{if(session?.user){state.user=session.user;await ensureProfile(session.user,session.user.user_metadata?.username);showApp(true);await loadData();}else{state.user=null;showApp(false);}});
+}
+
+init();
